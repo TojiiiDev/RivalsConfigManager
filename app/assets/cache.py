@@ -134,17 +134,19 @@ class LocalAssetCache:
     # Resolution by name (best-effort, offline)
     # ------------------------------------------------------------------ #
     def find_image(self, *names: str) -> Path | None:
-        """The cached image whose key matches any of ``names``, or ``None``.
+        """The cached image whose key's last component matches any of ``names``.
 
         Purely local (reads the persisted manifest + existing files); used as
         a last-resort image for cards that have no library preview or sidecar.
+        Manifest keys are slug chains (``"charms/nemesis_charm"``), so matching
+        is done on the final component (the item name).
         """
         state = self.load_state()
         if state.manifest is None:
             return None
         wanted = {slug(n) for n in names if n}
         for key, entry in state.manifest.assets.items():
-            if slug(key) in wanted:
+            if slug(key.split("/")[-1]) in wanted:
                 path = self.file_for(entry.path)
                 if path.is_file():
                     return path

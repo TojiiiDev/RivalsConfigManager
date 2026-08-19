@@ -1,5 +1,1098 @@
 {
     "schema_version": 1,
-    "assets_version": "2026.08.19.1",
-    "assets": {}
+    "assets_version": "2026.08.19.7",
+    "assets": {
+        "charms": {
+            "path": "assets/charms.png",
+            "version": 1,
+            "size": 38223,
+            "sha256": "8de6b3fa9c5abf9487b24811e8929fa14699064d3609c2a4ecc9ff2a8a15de89"
+        },
+        "charms/nemesis_charm": {
+            "path": "assets/charms/nemesis_charm.jpg",
+            "version": 1,
+            "size": 9071,
+            "sha256": "9211caabd3f4552def55e45c16f019ca5f96361463b3c475e1ad4d24a4cf32d5"
+        },
+        "charms/plat_1_seas_2_arch": {
+            "path": "assets/charms/plat_1_seas_2_arch.webp",
+            "version": 1,
+            "size": 8352,
+            "sha256": "f47a2c1c10eb2dff30d6ca95cd751434a5a9ff7daf2d014b3816bf7f4ce47ff4"
+        },
+        "emotes": {
+            "path": "assets/emotes.jpg",
+            "version": 1,
+            "size": 47623,
+            "sha256": "8db8a496766ccdc939bf683e41b0200545de5c450685d8c6916d3898efb58c92"
+        },
+        "fastflags": {
+            "path": "assets/fastflags.png",
+            "version": 1,
+            "size": 21893,
+            "sha256": "5f378c29ee65c1bfd9c078908cbda1e5ef48269a91ed513fc0fa0d5a1b36268a"
+        },
+        "kill_and_hit_sounds/diam_hand_kill_sound": {
+            "path": "assets/kill_and_hit_sounds/diam_hand_kill_sound.png",
+            "version": 1,
+            "size": 15110,
+            "sha256": "d2335d4e414dae8328d2f411ec55bfe789f30a20ed39e01a86930fb697f1c483"
+        },
+        "kill_and_hit_sounds": {
+            "path": "assets/kill_and_hit_sounds.jpg",
+            "version": 1,
+            "size": 19443,
+            "sha256": "4b1a5c35cf910ff7697104288450b99bd89e10527b84be9327e0e6ef7ff63b8f"
+        },
+        "kill_and_hit_sounds/meow_sound_kill_working": {
+            "path": "assets/kill_and_hit_sounds/meow_sound_kill_working.jpg",
+            "version": 1,
+            "size": 16762,
+            "sha256": "3a3956ba936d311d4fb41b37a43244e4cab60f4352d660321791a853dfc0b0e3"
+        },
+        "kill_and_hit_sounds/midas_touch_on_freeze_and_rush": {
+            "path": "assets/kill_and_hit_sounds/midas_touch_on_freeze_and_rush.png",
+            "version": 1,
+            "size": 12183,
+            "sha256": "fae481c245ace3a4ed0d98baa0d782bdb695cc9245f22c74a6e3ed32be03f9e1"
+        },
+        "kill_and_hit_sounds/sparkle_sound_killl": {
+            "path": "assets/kill_and_hit_sounds/sparkle_sound_killl.jpg",
+            "version": 1,
+            "size": 34980,
+            "sha256": "7e94ca780d7a87b74cd07657598670f363556a9ae2eb47b14152074280631f3e"
+        },
+        "rivals_skins": {
+            "path": "assets/rivals_skins.jpg",
+            "version": 1,
+            "size": 73974,
+            "sha256": "2abf5bc9c0b115a6d15b9ac98c409926c8723fc06600072b4e8b9f326781e8e4"
+        },
+        "rivals_skins/melee/battle_axe": {
+            "path": "assets/rivals_skins/melee/battle_axe.webp",
+            "version": 1,
+            "size": 4690,
+            "sha256": "80f1894b4b6958f8f434fecf9a414c06468d00a61d75219fee11cffafcb8b79c"
+        },
+        "rivals_skins/melee/battle_axe/keyttle_key_battle_axe": {
+            "path": "assets/rivals_skins/melee/battle_axe/keyttle_key_battle_axe.webp",
+            "version": 1,
+            "size": 8920,
+            "sha256": "d0b4c5655e550a55b62cdbc647e5abb4c7f280c355189211978033a5efb0dfd6"
+        },
+        "rivals_skins/melee/battle_axe/nordicaxe": {
+            "path": "assets/rivals_skins/melee/battle_axe/nordicaxe.webp",
+            "version": 1,
+            "size": 8296,
+            "sha256": "caa507d3331a2b5a2783823a24bd68da0e39785702fa781417a109f43cc71a8b"
+        },
+        "rivals_skins/melee/fist/brass": {
+            "path": "assets/rivals_skins/melee/fist/brass.webp",
+            "version": 1,
+            "size": 8390,
+            "sha256": "83b4218259a864e1fcf1b98f95a17374a544f16b10a73fb760cf9be9a3b8bb6d"
+        },
+        "rivals_skins/melee/fist/emo_punk_arm": {
+            "path": "assets/rivals_skins/melee/fist/emo_punk_arm.png",
+            "version": 1,
+            "size": 328581,
+            "sha256": "57537c229687963a79606decf42a71d441aecff02885a6ddd225aa588d69fce3"
+        },
+        "rivals_skins/melee/fist": {
+            "path": "assets/rivals_skins/melee/fist.webp",
+            "version": 1,
+            "size": 5210,
+            "sha256": "b51ff529916e812a6873d063a77003c760ebd6b5cdb0615537c459d24fad69b6"
+        },
+        "rivals_skins/melee/fist/minecraft_fist_i_guess": {
+            "path": "assets/rivals_skins/melee/fist/minecraft_fist_i_guess.webp",
+            "version": 1,
+            "size": 6014,
+            "sha256": "b7f464eea4f0664ea153f1cb7741eb541e1cdc6c6554236dbe48ec7f908e2626"
+        },
+        "rivals_skins/melee/fist/pumpkinfist": {
+            "path": "assets/rivals_skins/melee/fist/pumpkinfist.webp",
+            "version": 1,
+            "size": 10864,
+            "sha256": "5ec91775cf01141d128e99924da95fabe05094ff14e7d5994d33b47b9f4894ac"
+        },
+        "rivals_skins/melee": {
+            "path": "assets/rivals_skins/melee.webp",
+            "version": 1,
+            "size": 5210,
+            "sha256": "b51ff529916e812a6873d063a77003c760ebd6b5cdb0615537c459d24fad69b6"
+        },
+        "rivals_skins/melee/katana/arch_katana": {
+            "path": "assets/rivals_skins/melee/katana/arch_katana.webp",
+            "version": 1,
+            "size": 221788,
+            "sha256": "e9253912dca3acd61640c4559ff80014c271c0588c53355c9993d1decf6560e9"
+        },
+        "rivals_skins/melee/katana/azure_sword_katana_custom": {
+            "path": "assets/rivals_skins/melee/katana/azure_sword_katana_custom.webp",
+            "version": 1,
+            "size": 423408,
+            "sha256": "3cc350e1f0db1f7606642153070a747f63f8ccbb6f5c98712bd73cc15341cd34"
+        },
+        "rivals_skins/melee/katana/crystal_katana": {
+            "path": "assets/rivals_skins/melee/katana/crystal_katana.webp",
+            "version": 1,
+            "size": 557002,
+            "sha256": "03d84a95195d69c991f8f9203180a115538fcec4e1ff8d913a85bee717d7a262"
+        },
+        "rivals_skins/melee/katana/devil_s_trident_katana": {
+            "path": "assets/rivals_skins/melee/katana/devil_s_trident_katana.webp",
+            "version": 1,
+            "size": 6864,
+            "sha256": "3a295ddbbd4e532b700cd2d91c0a6e76103799fef3e99b657f3070675094eb35"
+        },
+        "rivals_skins/melee/katana": {
+            "path": "assets/rivals_skins/melee/katana.webp",
+            "version": 1,
+            "size": 2228,
+            "sha256": "fb4fcec2fd3cf3ae69432373d035555234d24e0f1fbdc74389d0153c7faf49b4"
+        },
+        "rivals_skins/melee/katana/keytana": {
+            "path": "assets/rivals_skins/melee/katana/keytana.webp",
+            "version": 1,
+            "size": 5342,
+            "sha256": "130cdbc3023d7d7e30cfe3e254d264b519b471b2e3c96feab44c7e79f8ecc76e"
+        },
+        "rivals_skins/melee/katana/linked_sword": {
+            "path": "assets/rivals_skins/melee/katana/linked_sword.webp",
+            "version": 1,
+            "size": 4538,
+            "sha256": "3f998e36bacf5ca2fe3fa1d59067ee7317c534d229a2e5533549b77a6ec032d7"
+        },
+        "rivals_skins/melee/katana/riptide_1": {
+            "path": "assets/rivals_skins/melee/katana/riptide_1.webp",
+            "version": 1,
+            "size": 68954,
+            "sha256": "c5ce1cae5493a6237636a841bec14aed440e5593fe9ba8452978902abeb43714"
+        },
+        "rivals_skins/melee/katana/saber_over_default_katana": {
+            "path": "assets/rivals_skins/melee/katana/saber_over_default_katana.webp",
+            "version": 1,
+            "size": 5184,
+            "sha256": "141d6eb3418a1da499e979ea5706daf101b9a88a4f9a3142a8bad5e6fdc1427a"
+        },
+        "rivals_skins/melee/knife/armature_default": {
+            "path": "assets/rivals_skins/melee/knife/armature_default.webp",
+            "version": 1,
+            "size": 5594,
+            "sha256": "29e284b29f5b707cb5a91bbeb4c2bb639dfac416c5eb54b40f3a1c48a091f85e"
+        },
+        "rivals_skins/melee/knife/caladbolg_anim_only_i_think": {
+            "path": "assets/rivals_skins/melee/knife/caladbolg_anim_only_i_think.webp",
+            "version": 1,
+            "size": 19782,
+            "sha256": "a27471e83e3fce6509807e78857096a249cc97770beafe609007795bd27e760f"
+        },
+        "rivals_skins/melee/knife/candy_cane_1": {
+            "path": "assets/rivals_skins/melee/knife/candy_cane_1.webp",
+            "version": 1,
+            "size": 8002,
+            "sha256": "14e64928d28b71c32d02320d5e5e69efb3fbab9a9949a7d0fbcf93a38953c270"
+        },
+        "rivals_skins/melee/knife/glast_shard_knife": {
+            "path": "assets/rivals_skins/melee/knife/glast_shard_knife.webp",
+            "version": 1,
+            "size": 31206,
+            "sha256": "889864901f63942680dfa696430efb44ee77f0c1fbeb43745b188b62ae9c554e"
+        },
+        "rivals_skins/melee/knife": {
+            "path": "assets/rivals_skins/melee/knife.webp",
+            "version": 1,
+            "size": 2476,
+            "sha256": "735775bab60680f441bf576ad3e8e60878fc33fedb3eae92ee0821fdb63257d6"
+        },
+        "rivals_skins/melee/knife/keylisong": {
+            "path": "assets/rivals_skins/melee/knife/keylisong.webp",
+            "version": 1,
+            "size": 6606,
+            "sha256": "85e042574dd1e4de4e9b0c0f4050d0717075cff2a9b9e223b70a18c54f454a61"
+        },
+        "rivals_skins/melee/knife/keyrambit": {
+            "path": "assets/rivals_skins/melee/knife/keyrambit.webp",
+            "version": 1,
+            "size": 8306,
+            "sha256": "d31acb46a51a16c0c322df1157b6349e49269be75d1810b5c134e88b681ce8d7"
+        },
+        "rivals_skins/melee/knife/minecraft_knife": {
+            "path": "assets/rivals_skins/melee/knife/minecraft_knife.webp",
+            "version": 1,
+            "size": 87624,
+            "sha256": "ddb64ca3585284fd457789c2acdd2c678eedc0d874487cc3d356aa424dbed67c"
+        },
+        "rivals_skins/melee/knife/pencil_over_default_knife": {
+            "path": "assets/rivals_skins/melee/knife/pencil_over_default_knife.webp",
+            "version": 1,
+            "size": 4500,
+            "sha256": "ebb91face385c2d8cb46b70c3f245b202d7335f948d3ae51b3b1b80dedffd683"
+        },
+        "rivals_skins/melee/knife/spear_knife": {
+            "path": "assets/rivals_skins/melee/knife/spear_knife.webp",
+            "version": 1,
+            "size": 150070,
+            "sha256": "145a24c030edc24f9054e14d3e941da9459d10cbf626bcece5f555954a401c65"
+        },
+        "rivals_skins/melee/knife/stilletto_over_default": {
+            "path": "assets/rivals_skins/melee/knife/stilletto_over_default.png",
+            "version": 1,
+            "size": 64718,
+            "sha256": "41893e0b6df0b9d889bd6e3d41d099129357bb411dd200ae48a5721fab8e82a7"
+        },
+        "rivals_skins/melee/maul/banhammer": {
+            "path": "assets/rivals_skins/melee/maul/banhammer.webp",
+            "version": 1,
+            "size": 5312,
+            "sha256": "57debd52a39fe7d5fdb9ad381c6dd59593a5909b3e6d13c2fd63444d9bd47475"
+        },
+        "rivals_skins/melee/maul": {
+            "path": "assets/rivals_skins/melee/maul.webp",
+            "version": 1,
+            "size": 3018,
+            "sha256": "c4e3bf47e2c2c675860910bc2c071a3a1a88c80d667718fffd3c3ff67179c128"
+        },
+        "rivals_skins/melee/riot/door_riot_shield": {
+            "path": "assets/rivals_skins/melee/riot/door_riot_shield.webp",
+            "version": 1,
+            "size": 4390,
+            "sha256": "1339edd3b2353cea74552a2cddee27e074397f440a811945a3e7b2b9f5351993"
+        },
+        "rivals_skins/melee/riot": {
+            "path": "assets/rivals_skins/melee/riot.webp",
+            "version": 1,
+            "size": 3128,
+            "sha256": "20f2fc3d61389ba184bf31aa4c13b8250353e1aec9621b6d2efb357ced14c665"
+        },
+        "rivals_skins/melee/riot/invis_riot": {
+            "path": "assets/rivals_skins/melee/riot/invis_riot.webp",
+            "version": 1,
+            "size": 5520,
+            "sha256": "509ce2c6db5a0ba9b7fdf4d1d132c6cf60893a1a52956616d8428d892ae81252"
+        },
+        "rivals_skins/melee/scythe/anchor_scythe": {
+            "path": "assets/rivals_skins/melee/scythe/anchor_scythe.png",
+            "version": 1,
+            "size": 84139,
+            "sha256": "a20714947b224f9ce0652694ce6fc0279f44642dbecefeb213425455b79a8efe"
+        },
+        "rivals_skins/melee/scythe/bat_scythe": {
+            "path": "assets/rivals_skins/melee/scythe/bat_scythe.webp",
+            "version": 1,
+            "size": 6960,
+            "sha256": "9454461d3dbcf3192a87258f40233c07555428981b1adfd4fa10f2a2cef8ad66"
+        },
+        "rivals_skins/melee/scythe/bug_net_over_default_scythe": {
+            "path": "assets/rivals_skins/melee/scythe/bug_net_over_default_scythe.webp",
+            "version": 1,
+            "size": 128682,
+            "sha256": "9b364138b6111add0afee5eb611d35676d662f989ae674e52b139ff4901d0293"
+        },
+        "rivals_skins/melee/scythe/cryo": {
+            "path": "assets/rivals_skins/melee/scythe/cryo.webp",
+            "version": 1,
+            "size": 14552,
+            "sha256": "fe68eff099f362a2324a88740c3c2d16b5570f35eaabb8f13e4e414716b47425"
+        },
+        "rivals_skins/melee/scythe/crystal_scythe": {
+            "path": "assets/rivals_skins/melee/scythe/crystal_scythe.webp",
+            "version": 1,
+            "size": 181676,
+            "sha256": "3fecc4e0b7693145b1f5f5ae3cb74677608ab4d4c87c0a44f4343e6f1e9dffc0"
+        },
+        "rivals_skins/melee/scythe/crystal_syth_over_normal_syth_1": {
+            "path": "assets/rivals_skins/melee/scythe/crystal_syth_over_normal_syth_1.webp",
+            "version": 1,
+            "size": 181676,
+            "sha256": "3fecc4e0b7693145b1f5f5ae3cb74677608ab4d4c87c0a44f4343e6f1e9dffc0"
+        },
+        "rivals_skins/melee/scythe": {
+            "path": "assets/rivals_skins/melee/scythe.webp",
+            "version": 1,
+            "size": 3788,
+            "sha256": "5d0e097b5e26e5cb7357c1d15e852385a16dc8b8880fcf91bec981d880bea3ca"
+        },
+        "rivals_skins/melee/scythe/keythe_over_default_scythe": {
+            "path": "assets/rivals_skins/melee/scythe/keythe_over_default_scythe.webp",
+            "version": 1,
+            "size": 61276,
+            "sha256": "e534005be07381c9cb34c8c173ec1a15f82550ccadab859a2769339b87aeef90"
+        },
+        "rivals_skins/melee/scythe/keythe_with_crystal_anim": {
+            "path": "assets/rivals_skins/melee/scythe/keythe_with_crystal_anim.png",
+            "version": 1,
+            "size": 14204,
+            "sha256": "852bbbe83280789fdaa5f5eefde60d16c3cf2dcb6539ea3f8d7c78ecae03a773"
+        },
+        "rivals_skins/melee/scythe/palm_scythe": {
+            "path": "assets/rivals_skins/melee/scythe/palm_scythe.webp",
+            "version": 1,
+            "size": 6964,
+            "sha256": "f73b44ea73846995cd78635c11ca0f4b794543ead7fb68160624bfc309b67bff"
+        },
+        "rivals_skins/melee/scythe/sakrua_sycthe": {
+            "path": "assets/rivals_skins/melee/scythe/sakrua_sycthe.webp",
+            "version": 1,
+            "size": 86700,
+            "sha256": "cd1313cf3251988e7743869bb9a767c6ad2744095c44e95c664addd699b7ed81"
+        },
+        "rivals_skins/melee/spear": {
+            "path": "assets/rivals_skins/melee/spear.webp",
+            "version": 1,
+            "size": 2298,
+            "sha256": "c8b5daf3253d5ac520b7eaea4c739dcbeb94e129b92aaf07e9d17cc6fe2b4bd2"
+        },
+        "rivals_skins/melee/spear/pencel": {
+            "path": "assets/rivals_skins/melee/spear/pencel.webp",
+            "version": 1,
+            "size": 3296,
+            "sha256": "c7d4996b64bae5045644d78fa86cd9a89b3e1eefc3e6fb67a55bc19b6dd0a76c"
+        },
+        "rivals_skins/primary/assult_rifle/ak_47": {
+            "path": "assets/rivals_skins/primary/assult_rifle/ak_47.webp",
+            "version": 1,
+            "size": 5358,
+            "sha256": "9fc144977ab3e0de8cf7d4aa74152dd12b04a4f802640c53680f3b54a15a66de"
+        },
+        "rivals_skins/primary/assult_rifle/akey_updated": {
+            "path": "assets/rivals_skins/primary/assult_rifle/akey_updated.webp",
+            "version": 1,
+            "size": 9434,
+            "sha256": "19bef225a5d9249c82459d4827c03180f741861d16ce90ddcc8aa4693ef5fa05"
+        },
+        "rivals_skins/primary/assult_rifle/aug_on_default_5": {
+            "path": "assets/rivals_skins/primary/assult_rifle/aug_on_default_5.webp",
+            "version": 1,
+            "size": 5560,
+            "sha256": "78612b579a10d8df972550a18841798270944a98b58deefb98038956df6f8452"
+        },
+        "rivals_skins/primary/assult_rifle/boneclaw": {
+            "path": "assets/rivals_skins/primary/assult_rifle/boneclaw.webp",
+            "version": 1,
+            "size": 6830,
+            "sha256": "6f7bc782c9c68a538334a794d9a958c9a5b60f92ad42f59231eae77e06f96278"
+        },
+        "rivals_skins/primary/assult_rifle/gingerbread_aug_over_aug": {
+            "path": "assets/rivals_skins/primary/assult_rifle/gingerbread_aug_over_aug.webp",
+            "version": 1,
+            "size": 8996,
+            "sha256": "1f0f8a4e4050a148eca31c03a093431f002c3632f75cbd30680b740ff134b7d4"
+        },
+        "rivals_skins/primary/assult_rifle": {
+            "path": "assets/rivals_skins/primary/assult_rifle.webp",
+            "version": 1,
+            "size": 5012,
+            "sha256": "0592c1f6bb254e45c1a27af52a01ddaa584684115c1e38ce407ac0015a9a8a22"
+        },
+        "rivals_skins/primary/assult_rifle/keyug_il_faut_la_aug": {
+            "path": "assets/rivals_skins/primary/assult_rifle/keyug_il_faut_la_aug.png",
+            "version": 1,
+            "size": 293033,
+            "sha256": "2f13cc9c5babe405cc872bd2c6ace9cba2f27040fdf38974354e2189fe9a5181"
+        },
+        "rivals_skins/primary/assult_rifle/pearl_rifle": {
+            "path": "assets/rivals_skins/primary/assult_rifle/pearl_rifle.webp",
+            "version": 1,
+            "size": 7146,
+            "sha256": "bcf4ed3f7cc6c2e686840e45488227698cecd68f17842781b1636ae666ad57f2"
+        },
+        "rivals_skins/primary/assult_rifle/tommy_on_default": {
+            "path": "assets/rivals_skins/primary/assult_rifle/tommy_on_default.webp",
+            "version": 1,
+            "size": 5288,
+            "sha256": "6d312c57b0da01c41cd629c36a2c18ed8905bf223639f9b6eaa79e32b9e80f62"
+        },
+        "rivals_skins/primary/bow/batbow": {
+            "path": "assets/rivals_skins/primary/bow/batbow.webp",
+            "version": 1,
+            "size": 7182,
+            "sha256": "876c0c15898610e440b33ecfd40c3b7eda076f781caf5aa2d4b0d9fcee784e40"
+        },
+        "rivals_skins/primary/bow/dreambow": {
+            "path": "assets/rivals_skins/primary/bow/dreambow.webp",
+            "version": 1,
+            "size": 15398,
+            "sha256": "6c040b98d36669794aa9b1e0ad5a88338b3f9fd80c743c2875267bd669328e3e"
+        },
+        "rivals_skins/primary/bow/frostbite_bow": {
+            "path": "assets/rivals_skins/primary/bow/frostbite_bow.webp",
+            "version": 1,
+            "size": 8322,
+            "sha256": "46c0f0a4014ea43ac4e2fc0f1a02b51f062b77f7c5ca01057a290b0999516032"
+        },
+        "rivals_skins/primary/bow": {
+            "path": "assets/rivals_skins/primary/bow.webp",
+            "version": 1,
+            "size": 3792,
+            "sha256": "a89d0fe14c1c2e6ed7943fb1f638b80ec65c72389ae55c731bc06e6f7a8095a3"
+        },
+        "rivals_skins/primary/bow/keybow": {
+            "path": "assets/rivals_skins/primary/bow/keybow.webp",
+            "version": 1,
+            "size": 9078,
+            "sha256": "280e98b3ecdc7881d3ead78c2ee54f304b866cec5a3b33c54495a6d75a96f267"
+        },
+        "rivals_skins/primary/bow/minecraft_bow": {
+            "path": "assets/rivals_skins/primary/bow/minecraft_bow.webp",
+            "version": 1,
+            "size": 333640,
+            "sha256": "ef10d96285d01d4e6c2d28a2bdc0ca6cbeace44fab9b9e38d47fb7f749be7fe7"
+        },
+        "rivals_skins/primary/burst_rifle/electro_burst": {
+            "path": "assets/rivals_skins/primary/burst_rifle/electro_burst.webp",
+            "version": 1,
+            "size": 9548,
+            "sha256": "4cc11c095713823ba565fbbc8c8edb91d10a55e1bb2a3a2370c77a1138a9d23d"
+        },
+        "rivals_skins/primary/burst_rifle": {
+            "path": "assets/rivals_skins/primary/burst_rifle.webp",
+            "version": 1,
+            "size": 3582,
+            "sha256": "191ebdd1cc8b6e3208d8d0d39205d7fea7242d59998c9fe769c4533c6ebdc560"
+        },
+        "rivals_skins/primary/burst_rifle/keyst": {
+            "path": "assets/rivals_skins/primary/burst_rifle/keyst.webp",
+            "version": 1,
+            "size": 8772,
+            "sha256": "1f25805c89ca5ac28da0cb9f16a921d2de3718f0b46adb23caa3219479bbf1b7"
+        },
+        "rivals_skins/primary/burst_rifle/pixel_burst": {
+            "path": "assets/rivals_skins/primary/burst_rifle/pixel_burst.webp",
+            "version": 1,
+            "size": 3738,
+            "sha256": "5e1f0ad7b9d3ffc5a047970904e5da9bbc6e4778c13d4c20477fb8e4a2e6e94a"
+        },
+        "rivals_skins/primary/crossbow/arch_crossbow_no_vfx_i_think": {
+            "path": "assets/rivals_skins/primary/crossbow/arch_crossbow_no_vfx_i_think.webp",
+            "version": 1,
+            "size": 18122,
+            "sha256": "3abc3aac37edb8debaa58efe88769136fb4fba6dc266d7629a70d54c595da0e7"
+        },
+        "rivals_skins/primary/crossbow/crosskey": {
+            "path": "assets/rivals_skins/primary/crossbow/crosskey.webp",
+            "version": 1,
+            "size": 184882,
+            "sha256": "9f61c038870b92487d39f5ce0bab727ba6d3e1844824a27b5a60f973886b6b26"
+        },
+        "rivals_skins/primary/crossbow/crystal_crossbow": {
+            "path": "assets/rivals_skins/primary/crossbow/crystal_crossbow.webp",
+            "version": 1,
+            "size": 8416,
+            "sha256": "020ce54813e22550003028e005dc60ee89fa660e597cdcfb52565c2f5c3f3221"
+        },
+        "rivals_skins/primary/crossbow": {
+            "path": "assets/rivals_skins/primary/crossbow.webp",
+            "version": 1,
+            "size": 6270,
+            "sha256": "e3250b1b372f2055144876623abd8c606e682868c358c25777414e136b3e8f3f"
+        },
+        "rivals_skins/primary/crossbow/pixelcrossbow": {
+            "path": "assets/rivals_skins/primary/crossbow/pixelcrossbow.webp",
+            "version": 1,
+            "size": 10788,
+            "sha256": "64d81654f698d79779ff231b0661d4b151ad25a9888d04147b1de71497e5a20f"
+        },
+        "rivals_skins/primary/energy_rifle": {
+            "path": "assets/rivals_skins/primary/energy_rifle.webp",
+            "version": 1,
+            "size": 5504,
+            "sha256": "eac40a4f40ed6785b74b9513521153c4d0540546da540e0bb70cd63cb4c635f6"
+        },
+        "rivals_skins/primary/energy_rifle/voidrifle": {
+            "path": "assets/rivals_skins/primary/energy_rifle/voidrifle.webp",
+            "version": 1,
+            "size": 11692,
+            "sha256": "487188bb78d4eed98fbfa785d00c392a2a0790fc3758fd1400e0a5759aca9c80"
+        },
+        "rivals_skins/primary/gunblade/cool_gunblade_custom": {
+            "path": "assets/rivals_skins/primary/gunblade/cool_gunblade_custom.webp",
+            "version": 1,
+            "size": 359010,
+            "sha256": "1539716b222ba16465a736433c5dbb69e8be46cef1de1c28c989270277b64381"
+        },
+        "rivals_skins/primary/gunblade": {
+            "path": "assets/rivals_skins/primary/gunblade.webp",
+            "version": 1,
+            "size": 3182,
+            "sha256": "e8b02ac3b306e7f895f42f8d80ab6091093bc45293121ccd46d51cd0022990bd"
+        },
+        "rivals_skins/primary/gunblade/keyblade": {
+            "path": "assets/rivals_skins/primary/gunblade/keyblade.webp",
+            "version": 1,
+            "size": 9916,
+            "sha256": "b24a7571d8e4d76b27440ad07950ab76f72cfbe67ab717dc2c21e59c9ad00164"
+        },
+        "rivals_skins/primary": {
+            "path": "assets/rivals_skins/primary.webp",
+            "version": 1,
+            "size": 5012,
+            "sha256": "0592c1f6bb254e45c1a27af52a01ddaa584684115c1e38ce407ac0015a9a8a22"
+        },
+        "rivals_skins/primary/minigun/fighter_jet": {
+            "path": "assets/rivals_skins/primary/minigun/fighter_jet.webp",
+            "version": 1,
+            "size": 5058,
+            "sha256": "7205670fcc1cc914a3e2a6d91c3b6cce642169ae8be251fd4b77c2c3119a0c12"
+        },
+        "rivals_skins/primary/minigun": {
+            "path": "assets/rivals_skins/primary/minigun.webp",
+            "version": 1,
+            "size": 5028,
+            "sha256": "d7679493e42a32885815db8e91bed935fa82c7ab38d2b1209e0c79eea49fab0b"
+        },
+        "rivals_skins/primary/minigun/pixel_minigun": {
+            "path": "assets/rivals_skins/primary/minigun/pixel_minigun.webp",
+            "version": 1,
+            "size": 13764,
+            "sha256": "69dd3ec5f46c351ce4f2afe99a3b52b671ef6d649af8bf20848ed6581223fb4d"
+        },
+        "rivals_skins/primary/paintball_gun": {
+            "path": "assets/rivals_skins/primary/paintball_gun.webp",
+            "version": 1,
+            "size": 4438,
+            "sha256": "4acc43024a74d639934ed1b9fbb16693c23d0e9d5c5b53e21c136fa9a198321c"
+        },
+        "rivals_skins/primary/paintball_gun/paintkey": {
+            "path": "assets/rivals_skins/primary/paintball_gun/paintkey.png",
+            "version": 1,
+            "size": 575678,
+            "sha256": "d5f8a1743ac9e197ee1213578d7d4be083d71558bb9d419e5b77ffd6f29e6119"
+        },
+        "rivals_skins/primary/paintball_gun/snowball": {
+            "path": "assets/rivals_skins/primary/paintball_gun/snowball.webp",
+            "version": 1,
+            "size": 10002,
+            "sha256": "811bc9adba921398a2371645076cb8cc457fc7318b0f623cbde512f8c586de02"
+        },
+        "rivals_skins/primary/rpg": {
+            "path": "assets/rivals_skins/primary/rpg.webp",
+            "version": 1,
+            "size": 3202,
+            "sha256": "33222b22d65db0d41af0d8152767cf9f9e8b9bbd94dccc042c5080463c88e2da"
+        },
+        "rivals_skins/primary/rpg/rpkey": {
+            "path": "assets/rivals_skins/primary/rpg/rpkey.png",
+            "version": 1,
+            "size": 26530,
+            "sha256": "31eeb59e0c5fa60c4dea567cc02630460c6fe19c2eb7961e266be97444c1d460"
+        },
+        "rivals_skins/primary/shotgun/baloonshotgun": {
+            "path": "assets/rivals_skins/primary/shotgun/baloonshotgun.webp",
+            "version": 1,
+            "size": 8004,
+            "sha256": "7812a565521e80e9be7e92519cce5b69b89cec73d332f365d56fbdbb0a79582f"
+        },
+        "rivals_skins/primary/shotgun": {
+            "path": "assets/rivals_skins/primary/shotgun.webp",
+            "version": 1,
+            "size": 3462,
+            "sha256": "9099c593aa08768442e28a30c365e52dd5bba3714bf97f7abdbae4afb41ce1c2"
+        },
+        "rivals_skins/primary/shotgun/shotkey": {
+            "path": "assets/rivals_skins/primary/shotgun/shotkey.webp",
+            "version": 1,
+            "size": 7048,
+            "sha256": "1c3b58b7d74a87c9e5eeba0cce72c4b7fdd1f17e67c69658982b3108b94412fb"
+        },
+        "rivals_skins/primary/sniper/event_horizon_sniper": {
+            "path": "assets/rivals_skins/primary/sniper/event_horizon_sniper.webp",
+            "version": 1,
+            "size": 7152,
+            "sha256": "ba9d918f5f8679609556fc28c5ac3b5ed1f2bbd0c02e91a425e83d7e7981edbc"
+        },
+        "rivals_skins/primary/sniper/eye_thing_sniper": {
+            "path": "assets/rivals_skins/primary/sniper/eye_thing_sniper.webp",
+            "version": 1,
+            "size": 4956,
+            "sha256": "71d73add3e851dec56818b055f8f834733279197c6b58fe304a5b722392a4450"
+        },
+        "rivals_skins/primary/sniper": {
+            "path": "assets/rivals_skins/primary/sniper.webp",
+            "version": 1,
+            "size": 3096,
+            "sha256": "e0584d1bb0ff74010a1c6817f0272fc559a83faa46dde96c9a0a3796531f1fef"
+        },
+        "rivals_skins/primary/sniper/keyper": {
+            "path": "assets/rivals_skins/primary/sniper/keyper.webp",
+            "version": 1,
+            "size": 8154,
+            "sha256": "8195ff3c427d934830215440dcb9312887293626a3d10e2a28656cbbab733fde"
+        },
+        "rivals_skins/primary/sniper/kraken_sniper": {
+            "path": "assets/rivals_skins/primary/sniper/kraken_sniper.webp",
+            "version": 1,
+            "size": 6466,
+            "sha256": "fd458b0bd85ac604b28ee75ab23dd9b77a2e3191ab7fd3181f7ecba8125c4950"
+        },
+        "rivals_skins/primary/sniper/pixel_sniper": {
+            "path": "assets/rivals_skins/primary/sniper/pixel_sniper.webp",
+            "version": 1,
+            "size": 4094,
+            "sha256": "36e22f54cb6b672e7fe2ad92aa6c3c22733f0caf8ba73ae2caadae576010fb30"
+        },
+        "rivals_skins/primary/sniper/pixel_keyper": {
+            "path": "assets/rivals_skins/primary/sniper/pixel_keyper.webp",
+            "version": 1,
+            "size": 413158,
+            "sha256": "1b397b340ca56759dd0798b629b68700ca199d57b96e7bff874875d45b83c320"
+        },
+        "rivals_skins/secondary/daggers/aces_maybe": {
+            "path": "assets/rivals_skins/secondary/daggers/aces_maybe.webp",
+            "version": 1,
+            "size": 5634,
+            "sha256": "23c8e334543e2d9c5da0ae148acdd3e566a12b719903a0c0f37459fe087ba44a"
+        },
+        "rivals_skins/secondary/daggers/arch_daggers": {
+            "path": "assets/rivals_skins/secondary/daggers/arch_daggers.png",
+            "version": 1,
+            "size": 213671,
+            "sha256": "ced5b6159ddadc0f2c25fd3a9bfd2b861423153fa5df0cbf03bcda6a86f3b12c"
+        },
+        "rivals_skins/secondary/daggers/bat_dagger": {
+            "path": "assets/rivals_skins/secondary/daggers/bat_dagger.webp",
+            "version": 1,
+            "size": 10258,
+            "sha256": "022fae988c3328a5716dd9b0130cc45d42c7ad509a34a37028105b5f974e48ea"
+        },
+        "rivals_skins/secondary/daggers/daggers_to_crystal_daggers": {
+            "path": "assets/rivals_skins/secondary/daggers/daggers_to_crystal_daggers.webp",
+            "version": 1,
+            "size": 13052,
+            "sha256": "38e185cd1ed6a60a4eded2d4111b00f0969726a0a8db95a79a0aea9cd1263da1"
+        },
+        "rivals_skins/secondary/daggers": {
+            "path": "assets/rivals_skins/secondary/daggers.webp",
+            "version": 1,
+            "size": 3816,
+            "sha256": "9d221ba95cddd50f1e33623a2b5d0b27c8565457cfd920fea63538d474a60400"
+        },
+        "rivals_skins/secondary/daggers/keynais": {
+            "path": "assets/rivals_skins/secondary/daggers/keynais.webp",
+            "version": 1,
+            "size": 10136,
+            "sha256": "bc70959fbcef3ed5d62fb2f49925085534c14beb26e2cc2f1e742e79bdde7f86"
+        },
+        "rivals_skins/secondary/energy_pistols/hyperlaser_over_default_energy": {
+            "path": "assets/rivals_skins/secondary/energy_pistols/hyperlaser_over_default_energy.webp",
+            "version": 1,
+            "size": 10206,
+            "sha256": "a34164442e5153f1af2e6df7fe938d827ae0efbc83eedae4e8e296667f1811db"
+        },
+        "rivals_skins/secondary/energy_pistols": {
+            "path": "assets/rivals_skins/secondary/energy_pistols.webp",
+            "version": 1,
+            "size": 6178,
+            "sha256": "9c15c5d7725c42bc6e02e9b8f538679269c1939db8d70ec8fa7bfa7875f38ceb"
+        },
+        "rivals_skins/secondary/energy_pistols/keyrgy_pistols": {
+            "path": "assets/rivals_skins/secondary/energy_pistols/keyrgy_pistols.webp",
+            "version": 1,
+            "size": 30924,
+            "sha256": "e0d826b386d0913c354f7913f8a9efb46e5fd76958e6588e9af71675e1d88db5"
+        },
+        "rivals_skins/secondary/energy_pistols/scorch_pistols": {
+            "path": "assets/rivals_skins/secondary/energy_pistols/scorch_pistols.png",
+            "version": 1,
+            "size": 269818,
+            "sha256": "8de70a703535c90072bae6e839d248fb9f2c5a2889d6d8f2351646d9ff6d3515"
+        },
+        "rivals_skins/secondary/energy_pistols/sol_pistols_over_default": {
+            "path": "assets/rivals_skins/secondary/energy_pistols/sol_pistols_over_default.webp",
+            "version": 1,
+            "size": 11520,
+            "sha256": "fd02dd196f2e79ea790b7fdcd2cf82d2e528ebc60e079b6a8cb15325697ba0cc"
+        },
+        "rivals_skins/secondary/energy_pistols/void_pistols": {
+            "path": "assets/rivals_skins/secondary/energy_pistols/void_pistols.webp",
+            "version": 1,
+            "size": 10732,
+            "sha256": "f276b53f8a15750d9c50cdbe0c5d50632b637cb99a3a76418abfece56a22534d"
+        },
+        "rivals_skins/secondary/exo_gun": {
+            "path": "assets/rivals_skins/secondary/exo_gun.webp",
+            "version": 1,
+            "size": 6384,
+            "sha256": "97398862bc6c5e875e17495c5ebc9fc579747c24b8016d90921429f83c6b6c9d"
+        },
+        "rivals_skins/secondary/exo_gun/midnightexogun": {
+            "path": "assets/rivals_skins/secondary/exo_gun/midnightexogun.webp",
+            "version": 1,
+            "size": 12936,
+            "sha256": "9d0affc1837ce1829985931a471f4fe68f70da9dc58846f7b6b0b6be9f40fbf5"
+        },
+        "rivals_skins/secondary/exo_gun/pearl_exo": {
+            "path": "assets/rivals_skins/secondary/exo_gun/pearl_exo.webp",
+            "version": 1,
+            "size": 5264,
+            "sha256": "fc332952a3a2313b99cabf9979272ba5ba1d91e4216e8335184fd2ba991734c5"
+        },
+        "rivals_skins/secondary/exo_gun/portal_gun_exogun": {
+            "path": "assets/rivals_skins/secondary/exo_gun/portal_gun_exogun.webp",
+            "version": 1,
+            "size": 295500,
+            "sha256": "eec55d306a313728233e70d5cc9b23c6d93a856709e35f7e3c45240795c62c86"
+        },
+        "rivals_skins/secondary/exo_gun/repulsor": {
+            "path": "assets/rivals_skins/secondary/exo_gun/repulsor.webp",
+            "version": 1,
+            "size": 6746,
+            "sha256": "d705018c4df6577289cacb9437648713491495707967546352685feb0074b1cd"
+        },
+        "rivals_skins/secondary/exo_gun/singularity": {
+            "path": "assets/rivals_skins/secondary/exo_gun/singularity.webp",
+            "version": 1,
+            "size": 8946,
+            "sha256": "d098b1b3e6fc9dc2e172370ba0e69f8fc7cc962ca06b1046f6ea6a9aec2c9821"
+        },
+        "rivals_skins/secondary/hand_gun/deagle": {
+            "path": "assets/rivals_skins/secondary/hand_gun/deagle.png",
+            "version": 1,
+            "size": 107247,
+            "sha256": "63a62bbce23d57503793e32ce709648d393ac0009be2a470d9d9fef561d87a9f"
+        },
+        "rivals_skins/secondary/hand_gun/gumball_handgun": {
+            "path": "assets/rivals_skins/secondary/hand_gun/gumball_handgun.webp",
+            "version": 1,
+            "size": 7720,
+            "sha256": "d1703bbd5bc01f1fd98fe22b1e4bf13dd99078c49e253e7f540b6c95662c1bdc"
+        },
+        "rivals_skins/secondary/hand_gun/hand_gun": {
+            "path": "assets/rivals_skins/secondary/hand_gun/hand_gun.webp",
+            "version": 1,
+            "size": 5382,
+            "sha256": "106b547f6804818532ceb68c176f01a1d130c488a54506f599093d64ade925fc"
+        },
+        "rivals_skins/secondary/hand_gun": {
+            "path": "assets/rivals_skins/secondary/hand_gun.webp",
+            "version": 1,
+            "size": 2796,
+            "sha256": "e6a5ceaa558c9bf685e780a57a6f9bf626e7c193d43913d01fa74fb9d4d8a7a0"
+        },
+        "rivals_skins/secondary/hand_gun/key_handgun": {
+            "path": "assets/rivals_skins/secondary/hand_gun/key_handgun.png",
+            "version": 1,
+            "size": 127745,
+            "sha256": "9484aad05771c28e8628ae3b536d72261f14cb74a35eccfdc6d744d80ae4a240"
+        },
+        "rivals_skins/secondary/hand_gun/pixelhandgun_1": {
+            "path": "assets/rivals_skins/secondary/hand_gun/pixelhandgun_1.webp",
+            "version": 1,
+            "size": 3940,
+            "sha256": "573168daa5224edb57834263cfd3b0a9acd44eb158af1675249f3d53199efeb6"
+        },
+        "rivals_skins/secondary/hand_gun/stealth_pistol": {
+            "path": "assets/rivals_skins/secondary/hand_gun/stealth_pistol.webp",
+            "version": 1,
+            "size": 5576,
+            "sha256": "4291ed0aa65686605e2ae3a5e11540a975cf78158d9a5ac599c089548882c6bb"
+        },
+        "rivals_skins/secondary": {
+            "path": "assets/rivals_skins/secondary.webp",
+            "version": 1,
+            "size": 2796,
+            "sha256": "e6a5ceaa558c9bf685e780a57a6f9bf626e7c193d43913d01fa74fb9d4d8a7a0"
+        },
+        "rivals_skins/secondary/revolver/cruise_revolver": {
+            "path": "assets/rivals_skins/secondary/revolver/cruise_revolver.webp",
+            "version": 1,
+            "size": 9524,
+            "sha256": "e78d0202ae5b209d7f60a63873dbbe4f6c1740ff1fad034b286725198629b477"
+        },
+        "rivals_skins/secondary/revolver/glasscannon": {
+            "path": "assets/rivals_skins/secondary/revolver/glasscannon.webp",
+            "version": 1,
+            "size": 2828,
+            "sha256": "a8b5fc106d33064a23118cf51234cec3d841760f0c08d16b8a1fc9a45401ddc0"
+        },
+        "rivals_skins/secondary/revolver": {
+            "path": "assets/rivals_skins/secondary/revolver.webp",
+            "version": 1,
+            "size": 3588,
+            "sha256": "594a08306baf29b334ec8f5b9eba21308d16cd060b2451b034e5e4d1aa520976"
+        },
+        "rivals_skins/secondary/revolver/keyrev": {
+            "path": "assets/rivals_skins/secondary/revolver/keyrev.webp",
+            "version": 1,
+            "size": 7314,
+            "sha256": "3864dcae5bc1d14b29d970e2d3be3ab45ab984ae6daf4959fadd61dccacbbafe"
+        },
+        "rivals_skins/secondary/revolver/sheriff_on_deafult": {
+            "path": "assets/rivals_skins/secondary/revolver/sheriff_on_deafult.webp",
+            "version": 1,
+            "size": 5008,
+            "sha256": "e995c0c1d3a30d2cf8a9de18e9b44f68180bf49951575e5d5faa417d50a8042a"
+        },
+        "rivals_skins/secondary/revolver/uh_boneclaw_rev": {
+            "path": "assets/rivals_skins/secondary/revolver/uh_boneclaw_rev.webp",
+            "version": 1,
+            "size": 6540,
+            "sha256": "4ed2f6371d5008d9cba02a8bb95a1d750f1b5e533d306613c6d6e5ab5793c8bc"
+        },
+        "rivals_skins/secondary/shorty/balloon_shorty": {
+            "path": "assets/rivals_skins/secondary/shorty/balloon_shorty.webp",
+            "version": 1,
+            "size": 6730,
+            "sha256": "63372af43ca08704d4dc7dad8ae6ae0ded0d840f3f677b59e546cc993ed298e2"
+        },
+        "rivals_skins/secondary/shorty": {
+            "path": "assets/rivals_skins/secondary/shorty.webp",
+            "version": 1,
+            "size": 3160,
+            "sha256": "23f246033647ec64e573fc513171fe10ed068985206db95eb395dcdb7722d4eb"
+        },
+        "rivals_skins/secondary/slingshot": {
+            "path": "assets/rivals_skins/secondary/slingshot.webp",
+            "version": 1,
+            "size": 5202,
+            "sha256": "1820514d0bfbbcffdae6a4341e2a55a598336081c12fec3af22aeb5c11ceef29"
+        },
+        "rivals_skins/secondary/slingshot/key_sling_over_normal_sling": {
+            "path": "assets/rivals_skins/secondary/slingshot/key_sling_over_normal_sling.webp",
+            "version": 1,
+            "size": 8626,
+            "sha256": "468678bf701ea216b493bea1f8e72f6413a9d87033d4c8059eaef8830ffab51e"
+        },
+        "rivals_skins/secondary/spray": {
+            "path": "assets/rivals_skins/secondary/spray.webp",
+            "version": 1,
+            "size": 4678,
+            "sha256": "85a2a4ae30e0b200bde7fb43b2a3ccf65f8556d9b65dfb169c1ddcb256e20e7c"
+        },
+        "rivals_skins/secondary/spray/key_spray": {
+            "path": "assets/rivals_skins/secondary/spray/key_spray.webp",
+            "version": 1,
+            "size": 11202,
+            "sha256": "4b952ef2f1d258ab2a4c20a56675bb67cb21a853da32bfb839601845e83c0181"
+        },
+        "rivals_skins/secondary/spray/spray_bottle": {
+            "path": "assets/rivals_skins/secondary/spray/spray_bottle.webp",
+            "version": 1,
+            "size": 5910,
+            "sha256": "f4ed73a460f64b73dca9bce640edd088035c1ceb9746e0cb2ba874c209fbc361"
+        },
+        "rivals_skins/secondary/uzi/archuzi": {
+            "path": "assets/rivals_skins/secondary/uzi/archuzi.webp",
+            "version": 1,
+            "size": 283960,
+            "sha256": "522383e2b59d1825a5d7c23a980675e0c41ecbd754f7e99bd499d5706473f9b8"
+        },
+        "rivals_skins/secondary/uzi": {
+            "path": "assets/rivals_skins/secondary/uzi.webp",
+            "version": 1,
+            "size": 3092,
+            "sha256": "49f42d02e7a303e5b4fc2d225f754605780e436c05f4e4c5fe06351ed22f2b67"
+        },
+        "rivals_skins/secondary/uzi/keyzi": {
+            "path": "assets/rivals_skins/secondary/uzi/keyzi.webp",
+            "version": 1,
+            "size": 8216,
+            "sha256": "0765da33c5c3348fd1fe816e704b2e0231ca032d0fe528ece6b4dd113fd38f71"
+        },
+        "rivals_skins/utility/grenade/cuddle_bomb": {
+            "path": "assets/rivals_skins/utility/grenade/cuddle_bomb.webp",
+            "version": 1,
+            "size": 9326,
+            "sha256": "208224d7b799b377da4b7b55b624d423673acc6e81cfe3c28e6286162dc5e551"
+        },
+        "rivals_skins/utility/grenade/dynamite_grenade": {
+            "path": "assets/rivals_skins/utility/grenade/dynamite_grenade.webp",
+            "version": 1,
+            "size": 6050,
+            "sha256": "232d649755285affeae79c277922423edacdd20e803ab94c738895a7a6958901"
+        },
+        "rivals_skins/utility/grenade/fizz_bomb": {
+            "path": "assets/rivals_skins/utility/grenade/fizz_bomb.webp",
+            "version": 1,
+            "size": 6512,
+            "sha256": "d68cfa447f5b8a5488894c161782c9e26427c3282fa1ffc6e09c0efbd51068b5"
+        },
+        "rivals_skins/utility/grenade": {
+            "path": "assets/rivals_skins/utility/grenade.webp",
+            "version": 1,
+            "size": 4462,
+            "sha256": "e7b105ee495f1bbe26cbcd26e6b986afd0ba504686a0fbe6122ed4a6098b74f0"
+        },
+        "rivals_skins/utility/grenade/keynade": {
+            "path": "assets/rivals_skins/utility/grenade/keynade.webp",
+            "version": 1,
+            "size": 8366,
+            "sha256": "97aefdba1f8ae8ec5da1168fa8c9ce296a8f75dbbe73bae1e06a77f14761728c"
+        },
+        "rivals_skins/utility/grenade/soul_grenade": {
+            "path": "assets/rivals_skins/utility/grenade/soul_grenade.webp",
+            "version": 1,
+            "size": 15990,
+            "sha256": "9d1df2887980d9f2a37f96c43364b480682a6e826ce0a6559e0d1e091d8a97eb"
+        },
+        "rivals_skins/utility/grenade/teto": {
+            "path": "assets/rivals_skins/utility/grenade/teto.png",
+            "version": 1,
+            "size": 452556,
+            "sha256": "58d605be4429c223ed28a114c23bc5c65f07f7063b2874c6dff3f369d7046d5e"
+        },
+        "rivals_skins/utility": {
+            "path": "assets/rivals_skins/utility.webp",
+            "version": 1,
+            "size": 4462,
+            "sha256": "e7b105ee495f1bbe26cbcd26e6b986afd0ba504686a0fbe6122ed4a6098b74f0"
+        },
+        "rivals_skins/utility/jump_pad/bouncyhouse_colorless": {
+            "path": "assets/rivals_skins/utility/jump_pad/bouncyhouse_colorless.webp",
+            "version": 1,
+            "size": 13028,
+            "sha256": "8f26fc9b01f043d0cc57cee8fe25d6fba576ddae0afebc0073b5a2124ea7a9b3"
+        },
+        "rivals_skins/utility/jump_pad": {
+            "path": "assets/rivals_skins/utility/jump_pad.webp",
+            "version": 1,
+            "size": 3528,
+            "sha256": "08b2d4a785a86bee37101ed091f5ca8367f1b5c5239e1850956ff303920df98b"
+        },
+        "rivals_skins/utility/jump_pad/spider_web": {
+            "path": "assets/rivals_skins/utility/jump_pad/spider_web.webp",
+            "version": 1,
+            "size": 13180,
+            "sha256": "91625581f4119af4ce941f466b64648432498a4f5a51a4661ff32b32cd339760"
+        },
+        "rivals_skins/utility/molotov/arch_molotov": {
+            "path": "assets/rivals_skins/utility/molotov/arch_molotov.webp",
+            "version": 1,
+            "size": 293488,
+            "sha256": "b989f6229a45919df9123c0dbff87fd8b4ead9c2ac5aa74e01de0f890887b35d"
+        },
+        "rivals_skins/utility/molotov": {
+            "path": "assets/rivals_skins/utility/molotov.webp",
+            "version": 1,
+            "size": 7446,
+            "sha256": "6eea19ab8ed8a61dcc6feb525c4a43300eaa65e881c742d2a5578d16cbe8e837"
+        },
+        "rivals_skins/utility/molotov/norm_molly_to_vexed_candle": {
+            "path": "assets/rivals_skins/utility/molotov/norm_molly_to_vexed_candle.webp",
+            "version": 1,
+            "size": 7930,
+            "sha256": "0a9ded94c6e95b3179997939dc1a4fe5f8bcf871ebe58406f3ea8400e28dc848"
+        },
+        "rivals_skins/utility/satchel": {
+            "path": "assets/rivals_skins/utility/satchel.webp",
+            "version": 1,
+            "size": 5306,
+            "sha256": "faff3dc4dec907883ab97e15635738bf457c900347be0ddaa4256c6cb5091dae"
+        },
+        "rivals_skins/utility/satchel/keychel": {
+            "path": "assets/rivals_skins/utility/satchel/keychel.png",
+            "version": 1,
+            "size": 140475,
+            "sha256": "efddbadd4d65956b0bd884596e56087a81073e8e1a687740455ed24a2e48529f"
+        },
+        "rivals_skins/utility/satchel/notebook_satchel": {
+            "path": "assets/rivals_skins/utility/satchel/notebook_satchel.webp",
+            "version": 1,
+            "size": 10596,
+            "sha256": "09a1c13c117f9f940283de5d16126c5af336363c909b20fba7014d947a92a063"
+        },
+        "rivals_skins/utility/satchel/potion_satchel": {
+            "path": "assets/rivals_skins/utility/satchel/potion_satchel.webp",
+            "version": 1,
+            "size": 10494,
+            "sha256": "76b7bc01532121bcca449b64ede4fa2e94bcc6a4582db2f5f9f47d53a00ae4d7"
+        },
+        "rivals_skins/utility/satchel/suspiciousgift": {
+            "path": "assets/rivals_skins/utility/satchel/suspiciousgift.webp",
+            "version": 1,
+            "size": 7794,
+            "sha256": "5f875c918eea4c7ce655014b47c67a9ec5d09a6327f3dc1d0cf797118d40deee"
+        },
+        "rivals_skins/utility/subspace_tripmine/dontpress": {
+            "path": "assets/rivals_skins/utility/subspace_tripmine/dontpress.webp",
+            "version": 1,
+            "size": 4622,
+            "sha256": "af25097eb4a8fa87dadd77a95e3ddf49f95e2f1b140735f492237b0987c73303"
+        },
+        "rivals_skins/utility/subspace_tripmine": {
+            "path": "assets/rivals_skins/utility/subspace_tripmine.webp",
+            "version": 1,
+            "size": 7448,
+            "sha256": "69780eb16c93e6aa469d102776ab304f0220eb0ba8c8ac3bd4896ec9f7016da8"
+        },
+        "rivals_skins/utility/subspace_tripmine/spring_over_default": {
+            "path": "assets/rivals_skins/utility/subspace_tripmine/spring_over_default.webp",
+            "version": 1,
+            "size": 7846,
+            "sha256": "f462820a733bedd4fdc8fd99809e7d7b0716ae7c93d740301c253a3754f18b9d"
+        },
+        "rivals_skins/utility/war_horn/airhorn_on_default_warhorn": {
+            "path": "assets/rivals_skins/utility/war_horn/airhorn_on_default_warhorn.webp",
+            "version": 1,
+            "size": 5540,
+            "sha256": "35fad683c7c8fdfd4141e6a849f82178d06bd10de3294487a3a889e63a15d693"
+        },
+        "rivals_skins/utility/war_horn/bone_claw_war_horn": {
+            "path": "assets/rivals_skins/utility/war_horn/bone_claw_war_horn.webp",
+            "version": 1,
+            "size": 5674,
+            "sha256": "a300323a5c1c12db4f5ee0d5f9bb9a778bdb122202db0983a75006bc0427daf0"
+        },
+        "rivals_skins/utility/war_horn": {
+            "path": "assets/rivals_skins/utility/war_horn.webp",
+            "version": 1,
+            "size": 3910,
+            "sha256": "c92b0165fdd5d9c1921c5782b9640b528aa5cb94daa5c5748be87b911b2a1ab6"
+        },
+        "rivals_skins/utility/war_horn/lifeguard_whistle": {
+            "path": "assets/rivals_skins/utility/war_horn/lifeguard_whistle.webp",
+            "version": 1,
+            "size": 6404,
+            "sha256": "da3df644fd7f5c2c1c7dac734615eb5819921e3837a273ebe39510101072f5c2"
+        },
+        "rivals_skins/utility/war_horn/mammoth_warhorn": {
+            "path": "assets/rivals_skins/utility/war_horn/mammoth_warhorn.webp",
+            "version": 1,
+            "size": 5942,
+            "sha256": "ddda8a13051caeef23b65e7b27b2d7799871b6049549b6dcf0b93c63316a0dec"
+        },
+        "rivals_skins/utility/war_horn/megaphone_war_horn": {
+            "path": "assets/rivals_skins/utility/war_horn/megaphone_war_horn.webp",
+            "version": 1,
+            "size": 7898,
+            "sha256": "75775046bf22080e0094c5d5a30ac16320f50a5e9dbeb695d354a2a3b49b2638"
+        },
+        "rivals_skins/utility/war_horn/trumpet_warhorn": {
+            "path": "assets/rivals_skins/utility/war_horn/trumpet_warhorn.webp",
+            "version": 1,
+            "size": 7704,
+            "sha256": "0d02903ced455896c5499d861c9fc1ceddfb1f3d590c2bdd5825de02537ae4bb"
+        },
+        "wraps/cherry_blossom_wrap": {
+            "path": "assets/wraps/cherry_blossom_wrap.jpg",
+            "version": 1,
+            "size": 19524,
+            "sha256": "fc0e6619d5f3c05de224969f2bf4990a19f35f9cf8d3ce590ccb79bbafe43ea1"
+        },
+        "wraps/glass": {
+            "path": "assets/wraps/glass.jpg",
+            "version": 1,
+            "size": 6783,
+            "sha256": "8f9f7a4aaa185290ea037d6754b5f924f673f4afd9f6b91eed6b0ed3af367c9a"
+        },
+        "wraps": {
+            "path": "assets/wraps.png",
+            "version": 1,
+            "size": 656963,
+            "sha256": "697cf6a599378493b3f3acb0d37d138efdaac5c11594fe5c2ab7400254994521"
+        },
+        "wraps/neon_matter_sur_neon_light": {
+            "path": "assets/wraps/neon_matter_sur_neon_light.png",
+            "version": 1,
+            "size": 656963,
+            "sha256": "697cf6a599378493b3f3acb0d37d138efdaac5c11594fe5c2ab7400254994521"
+        },
+        "wraps/neon_matter": {
+            "path": "assets/wraps/neon_matter.png",
+            "version": 1,
+            "size": 656963,
+            "sha256": "697cf6a599378493b3f3acb0d37d138efdaac5c11594fe5c2ab7400254994521"
+        }
+    }
 }

@@ -147,16 +147,29 @@ def effective_preview(item: CardTarget) -> Path | None:
 # ---------------------------------------------------------------------- #
 # Shared asset fallback (repository images, downloaded to the local cache)
 # ---------------------------------------------------------------------- #
-#: slug -> cached file path. Built lazily once (per cache root) and
-#: invalidated after a sync, so a scan of hundreds of cards never re-parses
-#: the manifest each time.
-_shared_cache: dict[str, Path] | None = None
+#: manifest key -> (reversed slug-chain components, cached file path). Built
+#: lazily once (per cache root) and invalidated after a sync, so a scan of
+#: hundreds of cards never re-parses the manifest each time.
+_shared_cache: dict[str, tuple[tuple[str, ...], Path]] | None = None
 _shared_cache_root: str | None = None
+
+#: How far to walk up the item's folder tree when matching a shared asset
+#: (plenty for a library nested a handful of levels deep).
+_MAX_ANCESTORS = 12
 
 
 def shared_preview(item: CardTarget) -> Path | None:
-    """A cached shared-asset image matching the item's name or an ancestor
-    folder (weapon / category), or ``None``. Never touches the network."""
+    """A cached shared-asset image matching the item, or its closest ancestor
+    (skin -> weapon -> weapon type -> category), or ``None``. Never touches
+    the network.
+
+    Matching is chain-based: the manifest key is the slug chain of the item's
+    path relative to the library root (``"rivals_skins/melee/battle_axe/nordicaxe"``),
+    so two items that differ only by case (``"Hand gun"`` folder vs ``"hand gun"``
+    skin) never collide. The most specific chain that is a suffix-aligned
+    prefix of the item's ancestor chain wins (the item itself before its
+    ancestors).
+    """
     global _shared_cache, _shared_cache_root
     from app.assets.cache import assets_cache_dir
 
@@ -164,11 +177,24 @@ def shared_preview(item: CardTarget) -> Path | None:
     if _shared_cache is None or _shared_cache_root != root:
         _shared_cache = _build_shared_map()
         _shared_cache_root = root
-    for name in _shared_names(item):
-        path = _shared_cache.get(_slug(name))
-        if path is not None:
-            return path
-    return None
+
+    parts = _item_chain_parts(item)
+    best: Path | None = None
+    best_score: tuple[int, int] | None = None
+    for _key, (rev, path) in _shared_cache.items():
+        length = len(rev)
+        if length > len(parts):
+            continue
+        start = _find_start(parts, rev)
+        if start is None:
+            continue
+        # More specific = smaller start index (the item itself is index 0),
+        # then longer chain (deeper ancestor).
+        score = (start, -length)
+        if best_score is None or score < best_score:
+            best_score = score
+            best = path
+    return best
 
 
 def invalidate_shared_assets() -> None:
@@ -178,40 +204,43 @@ def invalidate_shared_assets() -> None:
     _shared_cache_root = None
 
 
-def _build_shared_map() -> dict[str, Path]:
-    from app.assets.cache import LocalAssetCache, slug
+def _build_shared_map() -> dict[str, tuple[tuple[str, ...], Path]]:
+    from app.assets.cache import LocalAssetCache
 
     cache = LocalAssetCache()
     state = cache.load_state()
-    mapping: dict[str, Path] = {}
+    mapping: dict[str, tuple[tuple[str, ...], Path]] = {}
     if state.manifest is not None:
         for key, entry in state.manifest.assets.items():
             path = cache.file_for(entry.path)
             if path.is_file():
-                mapping[slug(key)] = path
+                # key is root-to-item; reverse it so it can be matched against
+                # the item's deepest-first ancestor chain.
+                mapping[key] = (tuple(key.split("/"))[::-1], path)
     return mapping
 
 
-def _slug(name: str) -> str:
+def _item_chain_parts(item: CardTarget) -> list[str]:
+    """The item's slug chain, deepest-first (``[name, parent, grandparent, ...]``)."""
     from app.assets.cache import slug
 
-    return slug(name)
-
-
-def _shared_names(item: CardTarget) -> list[str]:
-    """Candidate names for a shared-asset lookup: the item's own name, then
-    its ancestor folder names (weapon, weapon type, category)."""
-    names = [item.name]
+    parts = [slug(item.name)]
     current = item.path.parent
-    for _ in range(3):
-        if current is None:
+    for _ in range(_MAX_ANCESTORS):
+        if current is None or not current.name:
             break
-        name = current.name
-        if not name:
-            break
-        names.append(name)
+        parts.append(slug(current.name))
         current = current.parent
-    return names
+    return parts
+
+
+def _find_start(parts: list[str], rev: tuple[str, ...]) -> int | None:
+    """The smallest index ``i`` such that ``parts[i:i+len(rev)] == rev``."""
+    length = len(rev)
+    for i in range(len(parts) - length + 1):
+        if tuple(parts[i : i + length]) == rev:
+            return i
+    return None
 
 
 def apply_metadata(node: Node) -> None:

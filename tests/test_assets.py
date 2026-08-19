@@ -427,3 +427,118 @@ def test_effective_preview_falls_back_to_shared_asset(tmp_path: Path, monkeypatc
         kind=KIND_FILE,
     )
     assert effective_preview(unknown) is None
+
+
+def test_shared_preview_disambiguates_same_name_by_chain(tmp_path: Path, monkeypatch) -> None:
+    """A folder and a config that differ only by case ("Hand gun" vs "hand gun")
+    must each resolve to their own asset via the full path chain."""
+    from app.image_metadata import invalidate_shared_assets, shared_preview
+    from app.models import KIND_FILE, KIND_FOLDER, ConfigItem, Node
+
+    appdata = tmp_path / "AppData"
+    appdata.mkdir()
+    monkeypatch.setenv("APPDATA", str(appdata))
+    invalidate_shared_assets()
+
+    cache = LocalAssetCache()
+    cache.write_manifest(
+        parse_manifest(
+            _manifest(
+                {
+                    # the weapon folder image
+                    "rivals_skins/secondary/hand_gun": _entry(
+                        path="assets/rivals_skins/secondary/hand_gun.webp"
+                    ),
+                    # the "hand gun" skin inside that folder
+                    "rivals_skins/secondary/hand_gun/hand_gun": _entry(
+                        path="assets/rivals_skins/secondary/hand_gun/hand_gun.webp"
+                    ),
+                }
+            )
+        )
+    )
+    weapon_file = cache.root / "rivals_skins" / "secondary" / "hand_gun.webp"
+    skin_file = cache.root / "rivals_skins" / "secondary" / "hand_gun" / "hand_gun.webp"
+    weapon_file.parent.mkdir(parents=True, exist_ok=True)
+    skin_file.parent.mkdir(parents=True, exist_ok=True)
+    weapon_file.write_bytes(PNG_1PX)
+    skin_file.write_bytes(PNG_1PX)
+
+    lib = tmp_path / "lib"
+    weapon = Node(name="Hand gun", path=lib / "rivals skins" / "Secondary" / "Hand gun")
+    skin = ConfigItem(
+        name="hand gun",
+        path=lib / "rivals skins" / "Secondary" / "Hand gun" / "hand gun.json",
+        kind=KIND_FILE,
+    )
+
+    assert shared_preview(weapon) == weapon_file
+    assert shared_preview(skin) == skin_file
+
+
+def test_shared_preview_falls_back_to_ancestor(tmp_path: Path, monkeypatch) -> None:
+    """A skin without its own asset falls back to its weapon, then its type."""
+    from app.image_metadata import invalidate_shared_assets, shared_preview
+    from app.models import KIND_FILE, ConfigItem
+
+    appdata = tmp_path / "AppData"
+    appdata.mkdir()
+    monkeypatch.setenv("APPDATA", str(appdata))
+    invalidate_shared_assets()
+
+    cache = LocalAssetCache()
+    cache.write_manifest(
+        parse_manifest(
+            _manifest(
+                {
+                    "rivals_skins/melee/battle_axe": _entry(
+                        path="assets/rivals_skins/melee/battle_axe.webp"
+                    ),
+                }
+            )
+        )
+    )
+    weapon_file = cache.root / "rivals_skins" / "melee" / "battle_axe.webp"
+    weapon_file.parent.mkdir(parents=True, exist_ok=True)
+    weapon_file.write_bytes(PNG_1PX)
+
+    lib = tmp_path / "lib"
+    skin = ConfigItem(
+        name="NordicAxe",
+        path=lib / "rivals skins" / "Melee" / "Battle Axe" / "NordicAxe.json",
+        kind=KIND_FILE,
+    )
+    # No key for "NordicAxe": it resolves through the "Battle Axe" ancestor.
+    assert shared_preview(skin) == weapon_file
+
+
+# ---------------------------------------------------------------------- #
+# The real repository manifest is exactly in sync with the assets/ tree
+# ---------------------------------------------------------------------- #
+def test_repo_manifest_matches_assets_files() -> None:
+    """manifest.json at the repo root describes exactly what is in assets/."""
+    import hashlib
+
+    root = Path(__file__).resolve().parent.parent
+    manifest = loads((root / "manifest.json").read_text(encoding="utf-8"))
+
+    assert manifest.schema_version == 1
+    assert manifest.assets, "aucun asset dans le manifest"
+    assert manifest.assets_version, "assets_version manquant"
+
+    tracked = {entry.path for entry in manifest.assets.values()}
+    for key, entry in manifest.assets.items():
+        p = root / entry.path
+        assert p.is_file(), f"{key}: fichier manquant {entry.path}"
+        data = p.read_bytes()
+        assert hashlib.sha256(data).hexdigest() == entry.sha256, f"{key}: sha256 incohérent"
+        assert entry.size == len(data), f"{key}: taille incohérente"
+        assert ".." not in entry.path, f"{key}: chemin mal formé"
+        assert entry.version >= 1, f"{key}: version invalide"
+
+    # No image file on disk is missing from the manifest (and vice versa).
+    reserved = {"icon.png", "icon.ico", "README.md"}
+    for p in (root / "assets").rglob("*"):
+        if p.is_file() and p.name not in reserved:
+            rel = p.relative_to(root).as_posix()
+            assert rel in tracked, f"fichier non référencé dans le manifest : {rel}"

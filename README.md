@@ -191,9 +191,23 @@ décrites par un **manifest versionné** (`manifest.json`) et sont téléchargé
   `.env.example`) sur l'URL HTTPS racine du dépôt (ex. GitHub raw). Par
   défaut, aucun remote n'est configuré.
 
-Ajouter une image = la déposer dans `assets/<catégorie>/` + l'ajouter dans
-`manifest.json` + pousser. Les utilisateurs la récupèrent à la prochaine
-synchronisation — **sans** reconstruire le `.exe`.
+### Publier / mettre à jour les images
+
+Le dépôt `assets/` reflète la bibliothèque : la **clé du manifest** est la
+chaîne (en slugs) du chemin de l'élément (ex.
+`rivals_skins/melee/battle_axe/nordicaxe`), ce qui évite toute collision
+entre deux éléments homonymes. Ne pas éditer le manifest à la main — utiliser
+l'outil qui lit la bibliothèque + son cache, copie les images dans `assets/`
+et régénère le manifest (version, taille, sha256) :
+
+```bash
+python tools/sync_assets_from_library.py
+```
+
+Une image **nouvelle** démarre à la version 1, une image **modifiée** voit sa
+version incrémentée, une image **supprimée** est retirée. Puis `git add assets/
+manifest.json && git commit && git push` — les utilisateurs la récupèrent à la
+prochaine synchronisation, **sans** reconstruire le `.exe`.
 
 ## Structure du projet
 
@@ -216,7 +230,7 @@ synchronisation — **sans** reconstruire le `.exe`.
 │   ├── theme.py                 # thème sombre (QSS)
 │   ├── main_window.py           # fenêtre principale, navigation, recherche
 │   └── views/                   # accueil, parcours, config, paramètres, bienvenue
-├── assets/                      # images partagées (weapons, skins, …) + icône
-├── tools/                       # make_icon, scripts d'ajout de clés i18n
+├── assets/                      # images partagées (reflète la bibliothèque) + icône
+├── tools/                       # sync_assets_from_library, make_icon, clés i18n
 └── tests/                       # tests pytest
 ```
