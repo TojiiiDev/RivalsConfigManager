@@ -163,10 +163,44 @@ de bout en bout de l'interface (mode headless).
 Les journaux sont écrits dans `%APPDATA%\RivalsConfigManager\app.log` — utiles
 pour diagnostiquer un problème sans avoir accès à la console.
 
+## 9. Assets partagés et synchronisation
+
+Les images de la bibliothèque (armes, skins, charms, catégories…) ne sont
+**pas** compilées dans le `.exe`. Elles vivent dans le dépôt (`assets/`), sont
+décrites par un **manifest versionné** (`manifest.json`) et sont téléchargées
+à la demande dans le cache local de chaque utilisateur :
+
+```text
+%APPDATA%\RivalsConfigManager\
+    assets\            <- fichiers téléchargés
+    asset_manifest.json <- ce qui est déjà en cache (clé -> version)
+```
+
+- **Manifest** : `schema_version` (format) + `assets_version` (version des
+  assets, indépendante de la version de l'application) + `assets` (clé →
+  chemin/version/taille).
+- **Synchronisation** : bouton **Paramètres → Synchroniser les ressources**
+  (et synchronisation opportuniste au démarrage si un remote est configuré).
+  Seuls les assets nouveaux/modifiés sont téléchargés, en arrière-plan, sans
+  jamais bloquer l'interface.
+- **Hors ligne** : sans Internet (ou sans remote configuré), l'application
+  continue de fonctionner avec le cache local. Une carte sans image locale
+  retombe automatiquement sur l'image partagée du cache, sinon sur un
+  placeholder propre.
+- **Remote** : définir la variable d'environnement `RCM_ASSET_BASE_URL` (voir
+  `.env.example`) sur l'URL HTTPS racine du dépôt (ex. GitHub raw). Par
+  défaut, aucun remote n'est configuré.
+
+Ajouter une image = la déposer dans `assets/<catégorie>/` + l'ajouter dans
+`manifest.json` + pousser. Les utilisateurs la récupèrent à la prochaine
+synchronisation — **sans** reconstruire le `.exe`.
+
 ## Structure du projet
 
 ```
 ├── main.py                      # point d'entrée
+├── manifest.json                # manifest des assets partagés (versionné)
+├── .env.example                 # config d'exemple (RCM_ASSET_BASE_URL, …)
 ├── requirements.txt
 ├── RivalsConfigManager.spec     # build PyInstaller
 ├── README.md
@@ -176,12 +210,13 @@ pour diagnostiquer un problème sans avoir accès à la console.
 │   ├── json_validator.py        # validation JSON + résolution des meshes
 │   ├── backup_manager.py        # sauvegardes / restauration
 │   ├── file_manager.py          # activation (copie) d'une configuration
+│   ├── assets/                  # manifest, cache local, synchro, sécurité
 │   └── launcher.py              # démarrage de l'application
 ├── ui/
 │   ├── theme.py                 # thème sombre (QSS)
 │   ├── main_window.py           # fenêtre principale, navigation, recherche
 │   └── views/                   # accueil, parcours, config, paramètres, bienvenue
-├── assets/                      # icône
-├── tools/make_icon.py           # génère l'icône
+├── assets/                      # images partagées (weapons, skins, …) + icône
+├── tools/                       # make_icon, scripts d'ajout de clés i18n
 └── tests/                       # tests pytest
 ```
