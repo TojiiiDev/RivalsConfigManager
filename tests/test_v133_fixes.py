@@ -312,3 +312,40 @@ def test_browse_uses_home_when_no_current_path(tmp_path: Path, qapp, monkeypatch
     assert captured["dir"] == str(Path.home())
     assert view._library_path.text() == str(normalize_path(tmp_path / "Selected Folder"))
     view.deleteLater()
+
+
+# ---------------------------------------------------------------------- #
+# 8. Asset sync: the button is present and a no-remote run never crashes
+# ---------------------------------------------------------------------- #
+def test_asset_sync_no_remote_is_safe(tmp_path: Path, qapp, monkeypatch) -> None:
+    from ui.main_window import MainWindow
+
+    monkeypatch.delenv("RCM_ASSET_BASE_URL", raising=False)
+    appdata = tmp_path / "AppData" / "Roaming"
+    appdata.mkdir(parents=True)
+    monkeypatch.setenv("APPDATA", str(appdata))
+    lib = _real_library(tmp_path)
+    _configure(appdata, lib, tmp_path / "fleasion")
+
+    window = MainWindow()
+    window.show()
+    qapp.processEvents()
+
+    # The settings page exposes the sync action.
+    assert window._settings._sync_assets_btn is not None
+    assert "es ressources" in window._settings._sync_assets_btn.text() or \
+        "resources" in window._settings._sync_assets_btn.text().lower()
+
+    # Triggering a sync with no remote configured is a clean no-op.
+    window._sync_assets(silent=False)
+    qapp.processEvents()
+    deadline = time.monotonic() + 10.0
+    while time.monotonic() < deadline:
+        qapp.processEvents()
+        worker = window._asset_sync_worker
+        if worker is None or not worker.isRunning():
+            break
+        time.sleep(0.01)
+    qapp.processEvents()
+    assert window.root_node is not None  # the app keeps working normally
+    window.deleteLater()

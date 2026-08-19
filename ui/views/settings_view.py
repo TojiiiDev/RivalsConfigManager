@@ -235,10 +235,16 @@ class SettingsView(QWidget):
         actions.setSpacing(10)
         actions.addWidget(self._test_btn)
         actions.addWidget(self._refresh_btn)
-        actions.addWidget(self._sync_assets_btn)
         actions.addWidget(self._restore_btn)
         actions.addStretch(1)
         layout.addLayout(actions)
+        # Asset sync on its own row: the three actions above are already at
+        # the small-window width limit, so a fourth button must never widen
+        # the scroll content (it would push the selectors off-screen).
+        sync_row = QHBoxLayout()
+        sync_row.addWidget(self._sync_assets_btn)
+        sync_row.addStretch(1)
+        layout.addLayout(sync_row)
         layout.addSpacing(8)
         layout.addWidget(self._backup_check)
         layout.addSpacing(10)
