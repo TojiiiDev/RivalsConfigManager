@@ -56,6 +56,7 @@ class SettingsView(QWidget):
     library_changed = Signal(object)    # Path
     test_clicked = Signal()
     refresh_clicked = Signal()
+    sync_assets_clicked = Signal()
     open_fleasion_clicked = Signal()
     open_library_clicked = Signal()
     restore_clicked = Signal(object)    # BackupInfo
@@ -104,6 +105,8 @@ class SettingsView(QWidget):
         self._test_btn.clicked.connect(self.test_clicked)
         self._refresh_btn = QPushButton("", self)
         self._refresh_btn.clicked.connect(self.refresh_clicked)
+        self._sync_assets_btn = QPushButton("", self)
+        self._sync_assets_btn.clicked.connect(self.sync_assets_clicked)
         self._restore_btn = QPushButton("", self)
         self._restore_btn.clicked.connect(self._open_restore_dialog)
 
@@ -232,6 +235,7 @@ class SettingsView(QWidget):
         actions.setSpacing(10)
         actions.addWidget(self._test_btn)
         actions.addWidget(self._refresh_btn)
+        actions.addWidget(self._sync_assets_btn)
         actions.addWidget(self._restore_btn)
         actions.addStretch(1)
         layout.addLayout(actions)
@@ -286,6 +290,7 @@ class SettingsView(QWidget):
         self._library_browse.setText(t("settings.browse"))
         self._test_btn.setText(t("settings.test"))
         self._refresh_btn.setText(t("settings.refresh"))
+        self._sync_assets_btn.setText(t("assets.sync"))
         self._restore_btn.setText(t("settings.restore"))
         self._open_fleasion_btn.setText(t("settings.open_folder"))
         self._open_library_btn.setText(t("settings.open_folder"))

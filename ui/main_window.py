@@ -25,6 +25,8 @@ from PySide6.QtWidgets import (
 )
 
 from app import __version__
+from app.assets import asset_base_url
+from app.assets.worker import AssetSyncWorker
 from app.backup_manager import BackupManager, BackupInfo
 from app.categories import (
     category_folder_in_path,
@@ -38,6 +40,7 @@ from app.fleasion import FleasionManager
 from app.i18n import set_language as _set_language
 from app.i18n import t
 from app.image_manager import ImageManager
+from app.image_metadata import invalidate_shared_assets
 from app.models import ConfigItem, Node
 from app.mod_import import ModImportError, analyze_source, cleanup_staging, install_mod
 from app.obj_manager import ObjError, ObjManager
@@ -209,6 +212,8 @@ class MainWindow(QMainWindow):
         self._fade_anim: QPropertyAnimation | None = None
         #: Background library scan (None when no scan is running).
         self._scan_thread: _ScanThread | None = None
+        #: Background asset sync (None when no sync is running).
+        self._asset_sync_worker: AssetSyncWorker | None = None
 
         self._build_ui()
         self._connect()
@@ -226,6 +231,12 @@ class MainWindow(QMainWindow):
         app = QApplication.instance()
         if app is not None:
             app.installEventFilter(self)
+
+        # Opportunistic asset sync: only when a remote repository is actually
+        # configured; otherwise the app stays fully offline. Runs in the
+        # background after the window is up and never blocks startup.
+        if asset_base_url():
+            QTimer.singleShot(2000, self._auto_sync_assets)
 
     # ------------------------------------------------------------------ #
     # UI construction
@@ -434,6 +445,7 @@ class MainWindow(QMainWindow):
         self._settings.library_changed.connect(self._set_library_dir)
         self._settings.test_clicked.connect(self._test_connection)
         self._settings.refresh_clicked.connect(lambda: self.refresh_library(show_error=True))
+        self._settings.sync_assets_clicked.connect(self._sync_assets)
         self._settings.open_fleasion_clicked.connect(lambda: self._open_folder(self.settings.fleasion_dir))
         self._settings.open_library_clicked.connect(lambda: self._open_folder(self.settings.library_dir))
         self._settings.restore_clicked.connect(self._restore_backup)
@@ -761,10 +773,13 @@ class MainWindow(QMainWindow):
             thread.deleteLater()
 
     def closeEvent(self, event) -> None:  # noqa: N802 - Qt override
-        """Wait for an in-flight scan so a running QThread is never destroyed."""
+        """Wait for in-flight workers so a running QThread is never destroyed."""
         thread = self._scan_thread
         if thread is not None and thread.isRunning():
             thread.wait(3000)
+        worker = self._asset_sync_worker
+        if worker is not None and worker.isRunning():
+            worker.wait(3000)
         super().closeEvent(event)
 
     # ------------------------------------------------------------------ #
@@ -1688,6 +1703,58 @@ class MainWindow(QMainWindow):
 
     def _update_fleasion_manager(self) -> None:
         self.fleasion = FleasionManager(self.settings.fleasion_dir, self.backup_manager)
+
+    # ------------------------------------------------------------------ #
+    # Asset synchronisation (shared images, background, offline-tolerant)
+    # ------------------------------------------------------------------ #
+    def _auto_sync_assets(self) -> None:
+        """Opportunistic startup sync (silent)."""
+        self._sync_assets(silent=True)
+
+    def _sync_assets(self, silent: bool = False) -> None:
+        """Start a background asset sync (no-op if one is already running)."""
+        if self._asset_sync_worker is not None and self._asset_sync_worker.isRunning():
+            return
+        if not silent:
+            self._toast.show_message(t("assets.syncing"), KIND_WARNING)
+        worker = AssetSyncWorker(asset_base_url(), parent=self)
+        self._asset_sync_worker = worker
+        worker.succeeded.connect(
+            lambda outcome: self._on_assets_sync_done(outcome, silent)
+        )
+        worker.failed.connect(
+            lambda message: self._on_assets_sync_failed(message, silent)
+        )
+        worker.finished.connect(self._clear_asset_sync_worker)
+        worker.start()
+
+    def _on_assets_sync_done(self, outcome, silent: bool) -> None:
+        invalidate_shared_assets()
+        changed = bool(outcome.downloaded or outcome.updated or outcome.removed)
+        if outcome.errors:
+            self._toast.show_message(
+                t("assets.sync_partial", summary=outcome.summary()),
+                KIND_WARNING,
+                duration_ms=5000,
+            )
+        elif not silent or changed:
+            self._toast.show_message(
+                t("assets.sync_ok", summary=outcome.summary()),
+                KIND_SUCCESS,
+            )
+        if changed:
+            # Re-resolve cards so newly downloaded images show immediately.
+            self._refresh_and_resync()
+
+    def _on_assets_sync_failed(self, message: str, silent: bool) -> None:
+        if not silent:
+            self._toast.show_message(f"✘ {message}", KIND_WARNING, duration_ms=5000)
+
+    def _clear_asset_sync_worker(self) -> None:
+        worker = self._asset_sync_worker
+        self._asset_sync_worker = None
+        if worker is not None:
+            worker.deleteLater()
 
     def _set_backup_flag(self, enabled: bool) -> None:
         self.settings.backup_before_overwrite = enabled

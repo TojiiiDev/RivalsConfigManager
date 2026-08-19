@@ -134,9 +134,84 @@ def local_image_path(item: CardTarget) -> Path | None:
 
 
 def effective_preview(item: CardTarget) -> Path | None:
-    """Display priority: sidecar image, then the library preview, then None."""
+    """Display priority: sidecar image, then the library preview, then a
+    cached shared asset (from the repository), then None."""
     local = local_image_path(item)
-    return local if local is not None else item.preview
+    if local is not None:
+        return local
+    if item.preview is not None:
+        return item.preview
+    return shared_preview(item)
+
+
+# ---------------------------------------------------------------------- #
+# Shared asset fallback (repository images, downloaded to the local cache)
+# ---------------------------------------------------------------------- #
+#: slug -> cached file path. Built lazily once (per cache root) and
+#: invalidated after a sync, so a scan of hundreds of cards never re-parses
+#: the manifest each time.
+_shared_cache: dict[str, Path] | None = None
+_shared_cache_root: str | None = None
+
+
+def shared_preview(item: CardTarget) -> Path | None:
+    """A cached shared-asset image matching the item's name or an ancestor
+    folder (weapon / category), or ``None``. Never touches the network."""
+    global _shared_cache, _shared_cache_root
+    from app.assets.cache import assets_cache_dir
+
+    root = str(assets_cache_dir())
+    if _shared_cache is None or _shared_cache_root != root:
+        _shared_cache = _build_shared_map()
+        _shared_cache_root = root
+    for name in _shared_names(item):
+        path = _shared_cache.get(_slug(name))
+        if path is not None:
+            return path
+    return None
+
+
+def invalidate_shared_assets() -> None:
+    """Drop the cached shared-asset map (called after a successful sync)."""
+    global _shared_cache, _shared_cache_root
+    _shared_cache = None
+    _shared_cache_root = None
+
+
+def _build_shared_map() -> dict[str, Path]:
+    from app.assets.cache import LocalAssetCache, slug
+
+    cache = LocalAssetCache()
+    state = cache.load_state()
+    mapping: dict[str, Path] = {}
+    if state.manifest is not None:
+        for key, entry in state.manifest.assets.items():
+            path = cache.file_for(entry.path)
+            if path.is_file():
+                mapping[slug(key)] = path
+    return mapping
+
+
+def _slug(name: str) -> str:
+    from app.assets.cache import slug
+
+    return slug(name)
+
+
+def _shared_names(item: CardTarget) -> list[str]:
+    """Candidate names for a shared-asset lookup: the item's own name, then
+    its ancestor folder names (weapon, weapon type, category)."""
+    names = [item.name]
+    current = item.path.parent
+    for _ in range(3):
+        if current is None:
+            break
+        name = current.name
+        if not name:
+            break
+        names.append(name)
+        current = current.parent
+    return names
 
 
 def apply_metadata(node: Node) -> None:
