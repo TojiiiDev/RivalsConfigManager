@@ -597,5 +597,14 @@
     "profile_dialog": {
         "browse": "Sfoglia…",
         "browse_tooltip": "Aggiungi una configurazione scelta nell'albero"
+    },
+    "assets": {
+        "sync": "Sincronizza risorse",
+        "syncing": "Sincronizzazione delle risorse…",
+        "sync_ok": "✔ Risorse sincronizzate: {summary}",
+        "sync_partial": "✘ Sincronizzazione parziale: {summary}",
+        "offline": "Impossibile raggiungere il repository delle risorse (offline?). Uso della cache locale.",
+        "invalid_manifest": "Manifest delle risorse non valido o non supportato.",
+        "no_remote": "Nessun repository remoto di risorse configurato."
     }
 }

@@ -597,5 +597,14 @@
     "profile_dialog": {
         "browse": "Göz at…",
         "browse_tooltip": "Ağaçta seçilen bir yapılandırmayı ekle"
+    },
+    "assets": {
+        "sync": "Kaynakları eşitle",
+        "syncing": "Kaynaklar eşitleniyor…",
+        "sync_ok": "✔ Kaynaklar eşitlendi: {summary}",
+        "sync_partial": "✘ Kısmi eşitleme: {summary}",
+        "offline": "Kaynak deposuna ulaşılamadı (çevrimdışı?). Yerel önbellek kullanılıyor.",
+        "invalid_manifest": "Geçersiz veya desteklenmeyen kaynak manifesti.",
+        "no_remote": "Uzak kaynak deposu yapılandırılmadı."
     }
 }

@@ -597,5 +597,14 @@
     "profile_dialog": {
         "browse": "Parcourir…",
         "browse_tooltip": "Ajouter une configuration choisie dans l'arborescence"
+    },
+    "assets": {
+        "sync": "Synchroniser les ressources",
+        "syncing": "Synchronisation des ressources…",
+        "sync_ok": "✔ Ressources synchronisées : {summary}",
+        "sync_partial": "✘ Synchronisation partielle : {summary}",
+        "offline": "Impossible de joindre le dépôt d'assets (hors ligne ?). Cache local utilisé.",
+        "invalid_manifest": "Manifest d'assets invalide ou non pris en charge.",
+        "no_remote": "Aucun dépôt d'assets distant configuré."
     }
 }

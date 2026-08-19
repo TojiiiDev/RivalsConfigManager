@@ -597,5 +597,14 @@
     "profile_dialog": {
         "browse": "Przeglądaj…",
         "browse_tooltip": "Dodaj konfigurację wybraną w drzewie"
+    },
+    "assets": {
+        "sync": "Synchronizuj zasoby",
+        "syncing": "Synchronizowanie zasobów…",
+        "sync_ok": "✔ Zasoby zsynchronizowane: {summary}",
+        "sync_partial": "✘ Częściowa synchronizacja: {summary}",
+        "offline": "Nie można połączyć się z repozytorium zasobów (tryb offline?). Używam lokalnej pamięci podręcznej.",
+        "invalid_manifest": "Nieprawidłowy lub nieobsługiwany manifest zasobów.",
+        "no_remote": "Nie skonfigurowano zdalnego repozytorium zasobów."
     }
 }

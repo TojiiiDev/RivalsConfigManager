@@ -597,5 +597,14 @@
     "profile_dialog": {
         "browse": "Browse…",
         "browse_tooltip": "Add a configuration chosen in the tree"
+    },
+    "assets": {
+        "sync": "Synchronize resources",
+        "syncing": "Synchronizing resources…",
+        "sync_ok": "✔ Resources synchronized: {summary}",
+        "sync_partial": "✘ Partial synchronization: {summary}",
+        "offline": "Could not reach the asset repository (offline?). Using the local cache.",
+        "invalid_manifest": "Invalid or unsupported asset manifest.",
+        "no_remote": "No remote asset repository configured."
     }
 }

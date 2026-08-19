@@ -597,5 +597,14 @@
     "profile_dialog": {
         "browse": "Durchsuchen…",
         "browse_tooltip": "Konfiguration aus dem Baum hinzufügen"
+    },
+    "assets": {
+        "sync": "Ressourcen synchronisieren",
+        "syncing": "Ressourcen werden synchronisiert…",
+        "sync_ok": "✔ Ressourcen synchronisiert: {summary}",
+        "sync_partial": "✘ Teilweise synchronisiert: {summary}",
+        "offline": "Asset-Repository nicht erreichbar (offline?). Lokaler Cache wird verwendet.",
+        "invalid_manifest": "Ungültiges oder nicht unterstütztes Asset-Manifest.",
+        "no_remote": "Kein Remote-Asset-Repository konfiguriert."
     }
 }

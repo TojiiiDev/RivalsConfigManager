@@ -597,5 +597,14 @@
     "profile_dialog": {
         "browse": "Explorar…",
         "browse_tooltip": "Añadir una configuración elegida en el árbol"
+    },
+    "assets": {
+        "sync": "Sincronizar recursos",
+        "syncing": "Sincronizando recursos…",
+        "sync_ok": "✔ Recursos sincronizados: {summary}",
+        "sync_partial": "✘ Sincronización parcial: {summary}",
+        "offline": "No se pudo contactar el repositorio de recursos (¿sin conexión?). Usando la caché local.",
+        "invalid_manifest": "Manifiesto de recursos no válido o no compatible.",
+        "no_remote": "No hay repositorio remoto de recursos configurado."
     }
 }

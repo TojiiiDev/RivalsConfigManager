@@ -597,5 +597,14 @@
     "profile_dialog": {
         "browse": "Verkennen…",
         "browse_tooltip": "Voeg een in de boom gekozen configuratie toe"
+    },
+    "assets": {
+        "sync": "Bronnen synchroniseren",
+        "syncing": "Bronnen synchroniseren…",
+        "sync_ok": "✔ Bronnen gesynchroniseerd: {summary}",
+        "sync_partial": "✘ Gedeeltelijk gesynchroniseerd: {summary}",
+        "offline": "Kan de bronrepository niet bereiken (offline?). Lokale cache wordt gebruikt.",
+        "invalid_manifest": "Ongeldig of niet-ondersteund bronmanifest.",
+        "no_remote": "Geen externe bronrepository geconfigureerd."
     }
 }
