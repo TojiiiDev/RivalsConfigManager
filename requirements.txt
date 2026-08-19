@@ -1,0 +1,8 @@
+# Runtime dependency (GUI framework)
+PySide6>=6.8
+
+# Dev / testing
+pytest>=8.0
+
+# Build (produces the standalone .exe)
+pyinstaller>=6.10

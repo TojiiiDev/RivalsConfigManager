@@ -1,0 +1,61 @@
+# --------------------------------------------------------------------- #
+# Python
+# --------------------------------------------------------------------- #
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# --------------------------------------------------------------------- #
+# Build artifacts (never commit the .exe or PyInstaller intermediates)
+# --------------------------------------------------------------------- #
+build/
+dist/
+release/
+*.spec.bak
+*.manifest  # PyInstaller intermediate manifest
+
+# --------------------------------------------------------------------- #
+# User data — NEVER commit personal files, settings, caches, logs, trash
+# --------------------------------------------------------------------- #
+settings.json
+backups/
+*.log
+app.log
+*.rcmprofile
+*.tmp
+tmp/
+temp/
+
+# --------------------------------------------------------------------- #
+# Secrets — never commit tokens, keys, passwords. Copy .env.example to
+# .env and fill it locally only.
+# --------------------------------------------------------------------- #
+.env
+.env.*
+!.env.example
+
+# --------------------------------------------------------------------- #
+# OS / editor noise
+# --------------------------------------------------------------------- #
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
