@@ -320,7 +320,7 @@ def test_browse_uses_home_when_no_current_path(tmp_path: Path, qapp, monkeypatch
 def test_asset_sync_no_remote_is_safe(tmp_path: Path, qapp, monkeypatch) -> None:
     from ui.main_window import MainWindow
 
-    monkeypatch.delenv("RCM_ASSET_BASE_URL", raising=False)
+    monkeypatch.setenv("RCM_ASSET_BASE_URL", "")
     appdata = tmp_path / "AppData" / "Roaming"
     appdata.mkdir(parents=True)
     monkeypatch.setenv("APPDATA", str(appdata))

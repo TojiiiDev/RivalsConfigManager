@@ -15,6 +15,10 @@ if str(ROOT) not in sys.path:
 # Run the GUI tests headless.
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
+# No network in tests: the asset sync must default to a disabled remote
+# (an empty RCM_ASSET_BASE_URL explicitly overrides the baked-in default).
+os.environ["RCM_ASSET_BASE_URL"] = ""
+
 import pytest  # noqa: E402
 
 

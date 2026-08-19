@@ -38,14 +38,25 @@ DEFAULT_MAX_ASSET_BYTES = 10 * 1024 * 1024  # 10 MB
 #: Default network timeout for manifest/asset requests (seconds).
 DEFAULT_TIMEOUT = 15.0
 
+#: Default base URL of the public asset repository (GitHub raw). Used when
+#: ``RCM_ASSET_BASE_URL`` is not set, so a distributed app syncs out of the
+#: box without any per-user configuration. Overridable via the env var for
+#: mirrors / self-hosting / local dev.
+DEFAULT_ASSET_BASE_URL = (
+    "https://raw.githubusercontent.com/louisdacostagaudin000-ux/RivalsConfigManager/main"
+)
+
 
 def asset_base_url() -> str:
     """The trusted base URL of the asset repository (HTTPS, no trailing slash).
 
-    Read from ``RCM_ASSET_BASE_URL``; empty when no remote is configured, in
-    which case the app stays fully local (bundled + cached assets only).
+    Precedence: ``RCM_ASSET_BASE_URL`` when set (an **empty** value disables
+    the remote entirely — tests/offline), else the baked-in GitHub raw URL.
     """
-    return (os.environ.get("RCM_ASSET_BASE_URL") or "").rstrip("/")
+    raw = os.environ.get("RCM_ASSET_BASE_URL")
+    if raw is None:
+        return DEFAULT_ASSET_BASE_URL
+    return raw.strip().rstrip("/")
 
 
 def max_asset_bytes() -> int:
