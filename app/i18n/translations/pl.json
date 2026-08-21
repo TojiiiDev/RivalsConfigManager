@@ -99,13 +99,21 @@
         "backup_item": "{label}  —  {count} plik(i)",
         "restore_selection": "Przywróć zaznaczenie",
         "theme": "Theme",
-        "shortcuts_title": "Keyboard shortcuts"
+        "shortcuts_title": "Keyboard shortcuts",
+        "restart": "Uruchom ponownie aplikację",
+        "restart_tooltip": "Zamyka i ponownie uruchamia aplikację w sposób czysty (jak odświeżenie strony). Nic nie ginie: ulubione, profile, język, motyw i ścieżki są zapisywane.",
+        "review_tutorial": "Przejrzyj samouczek",
+        "review_tutorial_tooltip": "Uruchamia ponownie samouczek poznawania aplikacji"
     },
     "home": {
         "subtitle": "Wybierz kategorię, aby przeglądać swoje konfiguracje.",
         "empty": "Folder biblioteki jest pusty lub nie został znaleziony.",
         "clear_configs": "Clear Configs",
-        "clear_configs_tooltip": "Przenieś konfiguracje z aktywnego folderu Fleasion do Kosza systemu Windows (nigdy trwałe usunięcie)."
+        "clear_configs_tooltip": "Przenieś konfiguracje z aktywnego folderu Fleasion do Kosza systemu Windows (nigdy trwałe usunięcie).",
+        "drop_zone_title": "Przeciągnij i upuść tutaj swoje pliki, aby je dodać",
+        "drop_zone_subtitle": "Możesz też kliknąć, aby przeglądać swoje pliki",
+        "browse_files": "Dodaj pliki",
+        "browse_filter": "Konfiguracje (*.zip *.json);;Wszystkie pliki (*)"
     },
     "browse": {
         "empty_folder": "Brak elementów w tym folderze.",
@@ -163,7 +171,8 @@
         "missing": "✗ {name}",
         "missing_note": "Nie znaleziono wymaganego pliku",
         "explanation": "Ta konfiguracja może nie działać poprawnie bez tego pliku.",
-        "invalid_json": "✗ Nieprawidłowy JSON — zależności nieznane"
+        "invalid_json": "✗ Nieprawidłowy JSON — zależności nieznane",
+        "ignored": "✓ {name} (zweryfikowana — nie blokuje)"
     },
     "trash": {
         "title": "Kosz",
@@ -297,7 +306,11 @@
         "profile_imported": "Profile « {name} » imported",
         "theme_applied": "Theme applied",
         "item_not_found": "Item not found",
-        "no_active_configs": "Brak aktywnej konfiguracji w Fleasion do przechwycenia."
+        "no_active_configs": "Brak aktywnej konfiguracji w Fleasion do przechwycenia.",
+        "validated": "✓ Konfiguracja zweryfikowana — oznaczone zależności już nie blokują.",
+        "validation_reset": "Weryfikacja zresetowana.",
+        "fleasion_folder_inaccessible": "Aktywny folder Fleasion jest niedostępny.",
+        "restart_failed": "Nie można ponownie uruchomić aplikacji."
     },
     "confirm": {
         "delete_title": "Usuń",
@@ -516,8 +529,8 @@
         "delete": "Delete",
         "apply": "Apply",
         "export": "Export",
-        "import": "Import",
-        "import_tooltip": "Import a profile (.rcmprofile)",
+        "import": "Importuj profil",
+        "import_tooltip": "Importuj profil (.zip)",
         "no_profiles": "No profiles yet — create the first one.",
         "no_description": "No description",
         "count_one": "1 configuration",
@@ -542,11 +555,16 @@
         "import_into": "Importuj do profilu",
         "import_into_tooltip": "Zaimportuj konfigurację (plik/ZIP) i utwórz z nią profil",
         "capture_title": "Zapisz jako profil",
-        "capture_note_saved": "Przechwycono bieżącą konfigurację — {count} konfiguracja{s} zapisana{s}",
         "import_into_dialog": "Importuj konfigurację do profilu",
         "import_into_filter": "Konfiguracje (*.zip *.json);;Wszystkie pliki (*)",
         "browse": "Przeglądaj bibliotekę…",
-        "browse_tooltip": "Wybierz konfigurację przez drzewo"
+        "browse_tooltip": "Wybierz konfigurację przez drzewo",
+        "detected_note": "Konfiguracje wykryte w Fleasion: {count}",
+        "import_filter": "Profil RCM (*.zip *.rcmprofile);;Wszystkie pliki (*)",
+        "conflict_title": "Profil już istnieje",
+        "conflict_text": "Profil « {name} » już istnieje. Co chcesz zrobić?",
+        "conflict_replace": "Zastąp",
+        "conflict_copy": "Utwórz kopię"
     },
     "theme": {
         "dark": "Dark",
@@ -606,5 +624,84 @@
         "offline": "Nie można połączyć się z repozytorium zasobów (tryb offline?). Używam lokalnej pamięci podręcznej.",
         "invalid_manifest": "Nieprawidłowy lub nieobsługiwany manifest zasobów.",
         "no_remote": "Nie skonfigurowano zdalnego repozytorium zasobów."
+    },
+    "validation": {
+        "validate": "✓ Zweryfikuj",
+        "validate_tooltip": "Potwierdź, że ta konfiguracja działa pomimo oznaczonych zależności",
+        "title": "Weryfikacja konfiguracji",
+        "question": "Czy ta konfiguracja działa poprawnie pomimo aktualnie oznaczonych zależności?",
+        "yes": "✓ Tak, działa",
+        "no": "✕ Nie",
+        "validated": "✓ Zweryfikowana",
+        "validated_note": "Oznaczone zależności są ignorowane dla tej konfiguracji (weryfikacja użytkownika).",
+        "reset": "Resetuj",
+        "reset_tooltip": "Zresetuj weryfikację (oznaczone zależności znów blokują)"
+    },
+    "onboarding": {
+        "language": {
+            "title": "Wybierz język",
+            "body": "Aplikacja jest dostępna w kilku językach. Możesz go zmienić w dowolnym momencie w Ustawieniach."
+        },
+        "continue": "Kontynuuj",
+        "step_add": {
+            "title": "Dodaj swoje pliki",
+            "body": "Przeciągnij i upuść pliki tutaj, aby je dodać. Możesz też kliknąć, aby przeglądać swoje pliki."
+        },
+        "step_nav": {
+            "title": "Nawigacja",
+            "body": "Użyj tych przycisków, aby cofnąć się lub przejść dalej w nawigacji."
+        },
+        "step_trash": {
+            "title": "Kosz",
+            "body": "Znajdziesz tutaj usunięte konfiguracje i zarządzisz koszem."
+        },
+        "step_profiles": {
+            "title": "Profile",
+            "body": "Szybko twórz i stosuj swoje profile konfiguracji."
+        },
+        "step_home": {
+            "title": "Strona główna",
+            "body": "Wróć tutaj, aby znaleźć wszystkie swoje kategorie i konfiguracje."
+        },
+        "step_favorites": {
+            "title": "Ulubione",
+            "body": "Znajdziesz tutaj wszystkie swoje ulubione konfiguracje."
+        },
+        "step_search": {
+            "title": "Szukaj",
+            "body": "Szybko wyszukaj konfigurację, broń, skin, charm lub inny element."
+        },
+        "step_settings": {
+            "title": "Ustawienia",
+            "body": "Znajdziesz tutaj swoje preferencje, język, motyw i opcje aplikacji."
+        },
+        "done": {
+            "title": "Jesteś gotowy!",
+            "body": "Znasz już główne funkcje RivalsConfigManager."
+        },
+        "next": "Dalej",
+        "prev": "Wstecz",
+        "finish": "Zakończ",
+        "got_it": "Rozumiem",
+        "progress": "{current} / {total}"
+    },
+    "batch_import": {
+        "title": "Importuj wiele elementów",
+        "count": "Wykryto {count} element(y/ów)",
+        "to_choose": "ℹ️ Wybierz miejsce docelowe",
+        "detected": "✓ Wykryto: {label}",
+        "manual": "Miejsce wybrane ręcznie",
+        "import_button": "Importuj {count} element(y/ów)",
+        "imported": "Zaimportowano {count} element(y/ów)",
+        "failed": "Niektóre elementy się nie powiodły: {names}",
+        "destination_tooltip": "Rzeczywiste miejsce w tej kategorii (puste = sama kategoria)",
+        "choose_category": "Wybierz kategorię",
+        "choose_destination": "Wybierz miejsce docelowe",
+        "choose_weapon": "Wybierz broń",
+        "no_sublevel": "Brak podpoziomu — kategoria jest miejscem docelowym",
+        "new_destination": "+ Nowe miejsce docelowe",
+        "new_destination_title": "Nowe miejsce docelowe",
+        "new_destination_prompt": "Nazwa nowego miejsca docelowego:",
+        "new_destination_tooltip": "Utwórz nowe miejsce docelowe w tej kategorii (jawna akcja)"
     }
 }

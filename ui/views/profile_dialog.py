@@ -50,6 +50,7 @@ class ProfileDialog(QDialog):
         active_keys: set[str] | None = None,
         profile: Profile | None = None,
         capture: list[ConfigItem] | None = None,
+        save_text: str | None = None,
         parent=None,
     ) -> None:
         super().__init__(parent)
@@ -58,6 +59,9 @@ class ProfileDialog(QDialog):
         self._active_keys = active_keys or set()
         self._profile = profile
         self._capture = capture if capture is not None else []
+        #: Libellé du bouton d'enregistrement (capture mode : « Créer le
+        #: profil » ; sinon « Enregistrer »).
+        self._save_text = save_text
 
         if self._capture:
             self.setWindowTitle(t("profiles.capture_title"))
@@ -95,10 +99,13 @@ class ProfileDialog(QDialog):
         self._list = QListWidget(self)
         if self._capture:
             # Capture mode: read-only summary of the configurations that
-            # will be saved — the profile captures the current state.
+            # will be saved — the profile captures the current state. No
+            # checkboxes (QListWidgetItem is checkable by default; the flag
+            # is explicitly removed so nothing looks selectable).
             for config in self._capture:
                 item = QListWidgetItem(config.name)
                 item.setData(Qt.UserRole, _relative_key(config.path, library_root))
+                item.setFlags(item.flags() & ~Qt.ItemIsUserCheckable)
                 self._list.addItem(item)
         else:
             initial_checked = self._active_keys
@@ -151,10 +158,10 @@ class ProfileDialog(QDialog):
 
     # ------------------------------------------------------------------ #
     def retranslate(self) -> None:
-        self._save_btn.setText(t("common.save"))
+        self._save_btn.setText(self._save_text or t("common.save"))
         if self._capture:
             self._configs_label.setText(
-                t("profiles.capture_note_saved", count=len(self._capture))
+                t("profiles.detected_note", count=len(self._capture))
             )
         else:
             self._configs_label.setText(t("profiles.capture_note"))

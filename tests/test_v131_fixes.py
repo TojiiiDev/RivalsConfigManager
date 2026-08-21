@@ -27,6 +27,7 @@ from app.categories import (
 )
 from app.mod_import import ModAnalysis, ModFile, build_plan
 from app.config_analysis import analyze_config, clear_cache
+from app.i18n import current_language, set_language
 
 
 def _write(path: Path, data: object) -> None:
@@ -156,33 +157,39 @@ def _tree_library(tmp_path: Path) -> Path:
 def test_destination_picker_steps_resolve_real_folders(tmp_path: Path, qapp) -> None:
     from ui.views.destination_picker import DestinationPickerDialog
 
-    lib = _tree_library(tmp_path)
-    dialog = DestinationPickerDialog(lib)
-    # Step 1: canonical categories resolved + real top-level folders, no
-    # container « rivals skins ».
-    labels = [dialog._category_list.item(i).text() for i in range(dialog._category_list.count())]
-    assert "rivals skins" not in labels
-    assert "Primaire" in labels
-    assert "Charms" in labels
-    # Step 2: real weapon folders of the chosen category.
-    primary_item = next(
-        dialog._category_list.item(i)
-        for i in range(dialog._category_list.count())
-        if dialog._category_list.item(i).data(0x0100)[0] == "primary"
-    )
-    dialog._on_category_clicked(primary_item)
-    weapons = [
-        dialog._weapon_list.item(i).data(0x0100)
-        for i in range(dialog._weapon_list.count())
-    ]
-    assert "Assult Rifle" in weapons and "Bow" in weapons
-    assert None in weapons  # « directement dans Primary »
-    # Step 3: final destination in the real folder.
-    dialog._weapon_list.setCurrentRow(0)
-    dialog._weapon = weapons[0]
-    dialog._show_step(2)
-    assert dialog.destination == lib / "rivals skins" / "primary" / "Assult Rifle"
-    dialog.deleteLater()
+    previous = current_language()
+    set_language("fr")  # libellé canonique traduit en français (défaut = en)
+    try:
+        lib = _tree_library(tmp_path)
+        dialog = DestinationPickerDialog(lib)
+        # Step 1: canonical categories resolved + real top-level folders, no
+        # container « rivals skins ».
+        labels = [dialog._category_list.item(i).text()
+                  for i in range(dialog._category_list.count())]
+        assert "rivals skins" not in labels
+        assert "Primaire" in labels
+        assert "Charms" in labels
+        # Step 2: real weapon folders of the chosen category.
+        primary_item = next(
+            dialog._category_list.item(i)
+            for i in range(dialog._category_list.count())
+            if dialog._category_list.item(i).data(0x0100)[0] == "primary"
+        )
+        dialog._on_category_clicked(primary_item)
+        weapons = [
+            dialog._weapon_list.item(i).data(0x0100)
+            for i in range(dialog._weapon_list.count())
+        ]
+        assert "Assult Rifle" in weapons and "Bow" in weapons
+        assert None in weapons  # « directement dans Primary »
+        # Step 3: final destination in the real folder.
+        dialog._weapon_list.setCurrentRow(0)
+        dialog._weapon = weapons[0]
+        dialog._show_step(2)
+        assert dialog.destination == lib / "rivals skins" / "primary" / "Assult Rifle"
+        dialog.deleteLater()
+    finally:
+        set_language(previous)
 
 
 def test_destination_picker_new_weapon_typed(tmp_path: Path, qapp) -> None:
@@ -226,51 +233,54 @@ def test_import_dialog_destination_button_prefills_combos(tmp_path: Path, qapp) 
     les deux champs du formulaire (la décision finale reste éditable)."""
     from ui.views.import_dialog import ImportDialog
 
-    lib = _tree_library(tmp_path)
-    src = tmp_path / "MonMod"
-    src.mkdir()
-    (src / "config.json").write_text("{}", encoding="utf-8")
-
-    import app.mod_import as mod_import
-
-    analysis = mod_import.analyze_source(src)
-    dialog = ImportDialog(analysis, lib)
-    assert dialog._pick_dest_btn.text() == "Choisir la destination…"
-
-    # Monkeypatch the tree dialog's exec: user walks Primary → Bow.
-    from ui.views.destination_picker import DestinationPickerDialog
-
-    def fake_exec(self):
-        primary_item = next(
-            self._category_list.item(i)
-            for i in range(self._category_list.count())
-            if self._category_list.item(i).data(0x0100)[0] == "primary"
-        )
-        self._on_category_clicked(primary_item)
-        bow_idx = next(
-            i
-            for i in range(self._weapon_list.count())
-            if self._weapon_list.item(i).data(0x0100) == "Bow"
-        )
-        self._weapon_list.setCurrentRow(bow_idx)
-        self._weapon = "Bow"
-        return QDialog.Accepted
-
-    import types
-
-    monkeypatch_dialog = dialog
-    orig_exec = DestinationPickerDialog.exec
-    DestinationPickerDialog.exec = fake_exec  # type: ignore[method-assign]
+    previous = current_language()
+    set_language("fr")  # libellés français (défaut = en)
     try:
-        monkeypatch_dialog._pick_destination()
-    finally:
-        DestinationPickerDialog.exec = orig_exec  # type: ignore[method-assign]
+        lib = _tree_library(tmp_path)
+        src = tmp_path / "MonMod"
+        src.mkdir()
+        (src / "config.json").write_text("{}", encoding="utf-8")
 
-    assert dialog._category.currentData() == "primary"
-    assert dialog._weapon.currentText() == "Bow"
-    plan = dialog.build_plan()
-    assert plan.destination == lib / "rivals skins" / "primary" / "Bow" / "MonMod"
-    dialog.deleteLater()
+        import app.mod_import as mod_import
+
+        analysis = mod_import.analyze_source(src)
+        dialog = ImportDialog(analysis, lib)
+        assert dialog._pick_dest_btn.text() == "Choisir la destination…"
+
+        # Monkeypatch the tree dialog's exec: user walks Primary → Bow.
+        from ui.views.destination_picker import DestinationPickerDialog
+
+        def fake_exec(self):
+            primary_item = next(
+                self._category_list.item(i)
+                for i in range(self._category_list.count())
+                if self._category_list.item(i).data(0x0100)[0] == "primary"
+            )
+            self._on_category_clicked(primary_item)
+            bow_idx = next(
+                i
+                for i in range(self._weapon_list.count())
+                if self._weapon_list.item(i).data(0x0100) == "Bow"
+            )
+            self._weapon_list.setCurrentRow(bow_idx)
+            self._weapon = "Bow"
+            return QDialog.Accepted
+
+        monkeypatch_dialog = dialog
+        orig_exec = DestinationPickerDialog.exec
+        DestinationPickerDialog.exec = fake_exec  # type: ignore[method-assign]
+        try:
+            monkeypatch_dialog._pick_destination()
+        finally:
+            DestinationPickerDialog.exec = orig_exec  # type: ignore[method-assign]
+
+        assert dialog._category.currentData() == "primary"
+        assert dialog._weapon.currentText() == "Bow"
+        plan = dialog.build_plan()
+        assert plan.destination == lib / "rivals skins" / "primary" / "Bow" / "MonMod"
+        dialog.deleteLater()
+    finally:
+        set_language(previous)
 
 
 # ---------------------------------------------------------------------- #
@@ -310,6 +320,7 @@ def ui_window(qapp, tmp_path, monkeypatch):
     settings = AppSettings()
     settings.fleasion_dir = fleasion
     settings.library_dir = library
+    settings.language = "fr"  # UI française explicitement (défaut = en)
     settings.save()
 
     window = MainWindow()

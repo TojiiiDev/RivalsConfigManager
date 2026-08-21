@@ -22,6 +22,25 @@ from .themes import theme_keys as _theme_keys
 APP_NAME = "RivalsConfigManager"
 APP_DISPLAY_NAME = "Rivals Config Manager"
 
+#: v1.3.5 — central **admin** gate. The normal user build ships with
+#: ``ADMIN_MODE = False``: none of the admin tools are reachable in the
+#: interface (« Modifier l'image », gestion des assets, publication...).
+#: An admin build — or later a real account/login system — flips this
+#: single switch; the UI reads it through :func:`admin_enabled` and never
+#: tests ``if admin`` inline.
+ADMIN_MODE = False
+
+
+def admin_enabled() -> bool:
+    """Whether the admin toolset is active (single central gate).
+
+    Every admin-only UI element (manual image editor, asset management,
+    publication tools) is gated behind this function. A future login
+    system only needs to replace ``ADMIN_MODE`` with a runtime check —
+    no interface rewrite.
+    """
+    return bool(ADMIN_MODE)
+
 
 def data_dir() -> Path:
     """Return (and create) the per-user data directory."""
@@ -105,8 +124,10 @@ class AppSettings:
         #: Interface language (``"fr"`` / ``"en"``). Defaults to French:
         #: the application was French-only before 1.1.0, so existing
         #: installations keep their current language. Unknown values fall
-        #: back to the default, never an error.
-        self.language: str = DEFAULT_LANGUAGE
+        #: back to the default, never an error. Assigning it marks the
+        #: language as *chosen* (see the property below) so a virgin
+        #: install keeps an absent ``language`` key until the user picks one.
+        self._language: str = DEFAULT_LANGUAGE
         #: Per-folder card order (drag & drop) : folder key -> ordered list
         #: of card keys. Stored in settings.json — never touches the library.
         self.card_order: dict[str, list[str]] = {}
@@ -128,6 +149,25 @@ class AppSettings:
         #: understood by :func:`ui.theme.apply_theme` (primary, secondary,
         #: accent, background, gradient, gradient_angle).
         self.custom_theme: dict | None = None
+        #: First-launch onboarding (1.3.8). ``language_chosen`` is *derived*
+        #: at load time from the presence of a ``language`` key (so an
+        #: upgrade never re-asks); ``onboarding_completed`` is persisted and
+        #: means the interactive tutorial was finished — it never comes back.
+        self.language_chosen: bool = False
+        self.onboarding_completed: bool = False
+
+    # ------------------------------------------------------------------ #
+    @property
+    def language(self) -> str:
+        """The active language code."""
+        return self._language
+
+    @language.setter
+    def language(self, value: str) -> None:
+        """Assigning a language marks it as chosen (it will be persisted,
+        and the first-launch screen will never be asked again)."""
+        self._language = value
+        self.language_chosen = True
 
     # ------------------------------------------------------------------ #
     @classmethod
@@ -149,12 +189,12 @@ class AppSettings:
                 data.get("hot_activation_enabled", True)
             )
             # Language: missing key -> default; unknown value -> default.
+            # Only a persisted, known value counts as a *chosen* language.
             raw_language = data.get("language")
-            settings.language = (
-                raw_language
-                if isinstance(raw_language, str) and raw_language in available_languages()
-                else DEFAULT_LANGUAGE
-            )
+            if isinstance(raw_language, str) and raw_language in available_languages():
+                settings.language = raw_language  # setter → language_chosen = True
+            else:
+                settings._language = DEFAULT_LANGUAGE
             raw_order = data.get("card_order")
             if isinstance(raw_order, dict):
                 for folder, keys in raw_order.items():
@@ -176,9 +216,27 @@ class AppSettings:
                 settings.custom_theme = {
                     str(k): v for k, v in raw_custom.items() if isinstance(v, (str, int, float, bool))
                 } or None
-        except (json.JSONDecodeError, OSError, TypeError):
-            # Corrupt or unreadable settings: fall back to defaults.
+            # Onboarding (1.3.8): a persisted ``language`` key means the user
+            # chose their language at some point (never re-ask); the tutorial
+            # only runs while ``onboarding_completed`` is false.
+            # « Choisie » seulement si une VRAIE valeur est persistée (un
+            # ``null`` — cas du reset d'onboarding — ne compte pas).
+            settings.language_chosen = isinstance(data.get("language"), str) and bool(
+                data["language"]
+            )
+            settings.onboarding_completed = bool(data.get("onboarding_completed", False))
+        except (json.JSONDecodeError, OSError, TypeError, AttributeError):
+            # Corrupt or unreadable settings (including a valid JSON of the
+            # wrong shape, e.g. an array): fall back to defaults, never crash.
             settings = cls()
+        # Mécanisme de développement/test (v1.3.10) : ``RCM_RESET_ONBOARDING=1``
+        # remet à zéro UNIQUEMENT l'état du premier lancement (langue choisie
+        # + tutoriel terminé) — jamais les favoris, profils, chemins, thèmes
+        # ni aucune autre préférence. Jamais actif par défaut.
+        if os.environ.get("RCM_RESET_ONBOARDING") == "1":
+            settings.language_chosen = False
+            settings.onboarding_completed = False
+            settings.save()
         return settings
 
     def save(self) -> None:
@@ -188,11 +246,14 @@ class AppSettings:
             "library_dir": str(self.library_dir) if self.library_dir else None,
             "backup_before_overwrite": self.backup_before_overwrite,
             "hot_activation_enabled": self.hot_activation_enabled,
-            "language": self.language,
+            # La langue n'est écrite que si elle a réellement été choisie :
+            # un reset d'onboarding redevient ainsi une installation vierge.
+            "language": self.language if self.language_chosen else None,
             "card_order": self.card_order,
             "favorites": list(self.favorites),
             "theme": self.theme,
             "custom_theme": self.custom_theme,
+            "onboarding_completed": self.onboarding_completed,
         }
         tmp = path.with_suffix(".tmp")
         tmp.write_text(json.dumps(payload, indent=2), encoding="utf-8")

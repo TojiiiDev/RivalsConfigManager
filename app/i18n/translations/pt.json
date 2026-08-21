@@ -99,13 +99,21 @@
         "backup_item": "{label}  —  {count} ficheiro(s)",
         "restore_selection": "Restaurar a seleção",
         "theme": "Theme",
-        "shortcuts_title": "Keyboard shortcuts"
+        "shortcuts_title": "Keyboard shortcuts",
+        "restart": "Reiniciar o aplicativo",
+        "restart_tooltip": "Fecha e reinicia o aplicativo corretamente (como uma atualização de página). Nada se perde: favoritos, perfis, idioma, tema e caminhos são salvos.",
+        "review_tutorial": "Rever o tutorial",
+        "review_tutorial_tooltip": "Reinicia o tutorial de descoberta do aplicativo"
     },
     "home": {
         "subtitle": "Escolha uma categoria para navegar pelas suas configurações.",
         "empty": "A pasta da biblioteca está vazia ou não foi encontrada.",
         "clear_configs": "Clear Configs",
-        "clear_configs_tooltip": "Mover configurações da pasta ativa do Fleasion para a Reciclagem do Windows (nunca uma eliminação definitiva)."
+        "clear_configs_tooltip": "Mover configurações da pasta ativa do Fleasion para a Reciclagem do Windows (nunca uma eliminação definitiva).",
+        "drop_zone_title": "Arraste e solte seus arquivos aqui para adicioná-los",
+        "drop_zone_subtitle": "Você também pode clicar para procurar seus arquivos",
+        "browse_files": "Adicionar arquivos",
+        "browse_filter": "Configurações (*.zip *.json);;Todos os arquivos (*)"
     },
     "browse": {
         "empty_folder": "Sem elementos nesta pasta.",
@@ -163,7 +171,8 @@
         "missing": "✗ {name}",
         "missing_note": "Ficheiro necessário não encontrado",
         "explanation": "Esta configuração pode não funcionar corretamente sem este ficheiro.",
-        "invalid_json": "✗ JSON inválido — dependências desconhecidas"
+        "invalid_json": "✗ JSON inválido — dependências desconhecidas",
+        "ignored": "✓ {name} (validada — não bloqueante)"
     },
     "trash": {
         "title": "Reciclagem",
@@ -297,7 +306,11 @@
         "profile_imported": "Profile « {name} » imported",
         "theme_applied": "Theme applied",
         "item_not_found": "Item not found",
-        "no_active_configs": "Nenhuma configuração ativa no Fleasion para capturar."
+        "no_active_configs": "Nenhuma configuração ativa no Fleasion para capturar.",
+        "validated": "✓ Configuração validada — as dependências sinalizadas deixaram de bloquear.",
+        "validation_reset": "Validação redefinida.",
+        "fleasion_folder_inaccessible": "Pasta ativa do Fleasion inacessível.",
+        "restart_failed": "Não foi possível reiniciar o aplicativo."
     },
     "confirm": {
         "delete_title": "Eliminar",
@@ -516,8 +529,8 @@
         "delete": "Delete",
         "apply": "Apply",
         "export": "Export",
-        "import": "Import",
-        "import_tooltip": "Import a profile (.rcmprofile)",
+        "import": "Importar um perfil",
+        "import_tooltip": "Importar um perfil (.zip)",
         "no_profiles": "No profiles yet — create the first one.",
         "no_description": "No description",
         "count_one": "1 configuration",
@@ -542,11 +555,16 @@
         "import_into": "Importar em um perfil",
         "import_into_tooltip": "Importar uma configuração (arquivo/ZIP) e criar um perfil com ela",
         "capture_title": "Salvar como perfil",
-        "capture_note_saved": "Configuração atual capturada — {count} configuração{s} salva{s}",
         "import_into_dialog": "Importar uma configuração em um perfil",
         "import_into_filter": "Configurações (*.zip *.json);;Todos os arquivos (*)",
         "browse": "Explorar a biblioteca…",
-        "browse_tooltip": "Escolher uma configuração pela árvore"
+        "browse_tooltip": "Escolher uma configuração pela árvore",
+        "detected_note": "Configurações detectadas no Fleasion: {count}",
+        "import_filter": "Perfil RCM (*.zip *.rcmprofile);;Todos os arquivos (*)",
+        "conflict_title": "O perfil já existe",
+        "conflict_text": "Já existe um perfil « {name} ». O que você quer fazer?",
+        "conflict_replace": "Substituir",
+        "conflict_copy": "Criar uma cópia"
     },
     "theme": {
         "dark": "Dark",
@@ -606,5 +624,84 @@
         "offline": "Não foi possível acessar o repositório de recursos (offline?). Usando o cache local.",
         "invalid_manifest": "Manifesto de recursos inválido ou não suportado.",
         "no_remote": "Nenhum repositório remoto de recursos configurado."
+    },
+    "validation": {
+        "validate": "✓ Validar",
+        "validate_tooltip": "Confirmar que esta configuração funciona apesar das dependências sinalizadas",
+        "title": "Validação da configuração",
+        "question": "Esta configuração funciona corretamente apesar das dependências atualmente sinalizadas?",
+        "yes": "✓ Sim, funciona",
+        "no": "✕ Não",
+        "validated": "✓ Validada",
+        "validated_note": "Dependências sinalizadas ignoradas para esta configuração (validação do usuário).",
+        "reset": "Redefinir",
+        "reset_tooltip": "Redefinir a validação (as dependências sinalizadas voltam a bloquear)"
+    },
+    "onboarding": {
+        "language": {
+            "title": "Escolha o seu idioma",
+            "body": "O aplicativo está disponível em vários idiomas. Você pode alterá-lo a qualquer momento nas Configurações."
+        },
+        "continue": "Continuar",
+        "step_add": {
+            "title": "Adicione seus arquivos",
+            "body": "Arraste e solte seus arquivos aqui para adicioná-los. Você também pode clicar para navegar pelos seus arquivos."
+        },
+        "step_nav": {
+            "title": "Navegação",
+            "body": "Use estes botões para voltar ou avançar na sua navegação."
+        },
+        "step_trash": {
+            "title": "Lixeira",
+            "body": "Encontre aqui suas configurações excluídas e gerencie sua lixeira."
+        },
+        "step_profiles": {
+            "title": "Perfis",
+            "body": "Crie e aplique rapidamente seus perfis de configuração."
+        },
+        "step_home": {
+            "title": "Início",
+            "body": "Volte aqui para encontrar todas as suas categorias e configurações."
+        },
+        "step_favorites": {
+            "title": "Favoritos",
+            "body": "Encontre aqui todas as suas configurações favoritas."
+        },
+        "step_search": {
+            "title": "Pesquisa",
+            "body": "Pesquise rapidamente uma configuração, uma arma, uma skin, um charm ou qualquer outro elemento."
+        },
+        "step_settings": {
+            "title": "Configurações",
+            "body": "Encontre aqui suas preferências, idioma, tema e opções do aplicativo."
+        },
+        "done": {
+            "title": "Você está pronto!",
+            "body": "Agora você conhece as principais funções do RivalsConfigManager."
+        },
+        "next": "Próximo",
+        "prev": "Anterior",
+        "finish": "Concluir",
+        "got_it": "Entendi",
+        "progress": "{current} / {total}"
+    },
+    "batch_import": {
+        "title": "Importar vários elementos",
+        "count": "{count} elemento{s} detectado{s}",
+        "to_choose": "ℹ️ Destino a escolher",
+        "detected": "✓ Detectado: {label}",
+        "manual": "Destino escolhido manualmente",
+        "import_button": "Importar os {count} elemento{s}",
+        "imported": "{count} elemento{s} importado{s}",
+        "failed": "Alguns elementos falharam: {names}",
+        "destination_tooltip": "Destino real dentro desta categoria (vazio = a própria categoria)",
+        "choose_category": "Escolher uma categoria",
+        "choose_destination": "Escolher um destino",
+        "choose_weapon": "Escolher uma arma",
+        "no_sublevel": "Sem subnível — a categoria é o destino",
+        "new_destination": "+ Novo destino",
+        "new_destination_title": "Novo destino",
+        "new_destination_prompt": "Nome do novo destino:",
+        "new_destination_tooltip": "Criar um novo destino nesta categoria (ação explícita)"
     }
 }

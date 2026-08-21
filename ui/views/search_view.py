@@ -41,6 +41,7 @@ from app.search import (
     STATUS_MISSING,
     STATUS_SYNC,
 )
+from ui.card_specs import config_spec, folder_spec
 from ui.icons import close_icon, search_icon
 from ui.widgets.grid import CardGrid, CardSpec
 
@@ -293,52 +294,26 @@ class SearchView(QWidget):
         self.config_clicked.emit(entry)
 
     def _folder_spec(self, node: Node, library_root: Node) -> CardSpec:
-        subtitle = ""
-        if library_root is not None:
-            try:
-                rel = node.path.relative_to(library_root.path)
-                subtitle = str(rel.parent) if str(rel.parent) != "." else ""
-            except ValueError:
-                pass
-        count = node.total_items()
-        label = t("unit.element_one") if count == 1 else t("unit.element_many")
-        if not subtitle:
-            subtitle = f"{count} {label}"
-        return CardSpec(
-            title=node.name,
-            subtitle=subtitle,
-            preview=node.preview,
+        """Folder result card (hierarchical search). Built by the central
+        builder: it carries the same favourite star as every other card
+        using Card/CardSpec (v1.3.4/1.3.5)."""
+        return folder_spec(
+            node,
             on_click=lambda n=node: self.config_clicked.emit(n),
-            edit_target=node,
-            delete_target=node,
-            key=str(node.path),
+            library_root=library_root,
+            favorites_provider=self._favorites_provider,
         )
 
     def _config_spec(self, config: ConfigItem, library_root: Node) -> CardSpec:
-        subtitle = t("unit.configuration")
-        if library_root is not None:
-            try:
-                rel = config.path.relative_to(library_root.path)
-                subtitle = str(rel.parent) if str(rel.parent) != "." else ""
-            except ValueError:
-                pass
-        key = str(config.path)
-        provider = self._activation_provider
-        return CardSpec(
-            title=config.name,
-            subtitle=subtitle,
-            preview=config.preview,
+        """Config result card — built by the central builder (same star,
+        same activation button, same status chip as every other card)."""
+        return config_spec(
+            config,
             on_click=lambda c=config: self.config_clicked.emit(c),
-            edit_target=config,
-            delete_target=config,
-            key=key,
-            activation_target=config if provider is not None else None,
-            activation_state=provider(config) if provider is not None else None,
-            is_favorite=bool(self._favorites_provider(key))
-            if self._favorites_provider is not None else False,
-            favorite_target=config if self._favorites_provider is not None else None,
-            status=self._status_provider(config)
-            if self._status_provider is not None else None,
+            library_root=library_root,
+            activation_provider=self._activation_provider,
+            favorites_provider=self._favorites_provider,
+            status_provider=self._status_provider,
         )
 
     # ------------------------------------------------------------------ #

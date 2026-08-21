@@ -99,13 +99,21 @@
         "backup_item": "{label}  —  {count} Datei(en)",
         "restore_selection": "Auswahl wiederherstellen",
         "theme": "Theme",
-        "shortcuts_title": "Keyboard shortcuts"
+        "shortcuts_title": "Keyboard shortcuts",
+        "restart": "Anwendung neu starten",
+        "restart_tooltip": "Schließt und startet die Anwendung sauber neu (wie eine Seitenaktualisierung). Es geht nichts verloren: Favoriten, Profile, Sprache, Design und Pfade werden gespeichert.",
+        "review_tutorial": "Tutorial ansehen",
+        "review_tutorial_tooltip": "Startet das App-Entdeckungs-Tutorial erneut"
     },
     "home": {
         "subtitle": "Wählen Sie eine Kategorie, um Ihre Konfigurationen zu durchsuchen.",
         "empty": "Der Bibliotheksordner ist leer oder nicht gefunden.",
         "clear_configs": "Clear Configs",
-        "clear_configs_tooltip": "Konfigurationen aus dem aktiven Fleasion-Ordner in den Windows-Papierkorb verschieben (niemals endgültig löschen)."
+        "clear_configs_tooltip": "Konfigurationen aus dem aktiven Fleasion-Ordner in den Windows-Papierkorb verschieben (niemals endgültig löschen).",
+        "drop_zone_title": "Ziehe deine Dateien hierher, um sie hinzuzufügen",
+        "drop_zone_subtitle": "Du kannst auch klicken, um deine Dateien zu durchsuchen",
+        "browse_files": "Dateien hinzufügen",
+        "browse_filter": "Konfigurationen (*.zip *.json);;Alle Dateien (*)"
     },
     "browse": {
         "empty_folder": "Kein Element in diesem Ordner.",
@@ -163,7 +171,8 @@
         "missing": "✗ {name}",
         "missing_note": "Erforderliche Datei nicht gefunden",
         "explanation": "Diese Konfiguration funktioniert ohne diese Datei möglicherweise nicht richtig.",
-        "invalid_json": "✗ Ungültiges JSON — Abhängigkeiten unbekannt"
+        "invalid_json": "✗ Ungültiges JSON — Abhängigkeiten unbekannt",
+        "ignored": "✓ {name} (validiert — nicht blockierend)"
     },
     "trash": {
         "title": "Papierkorb",
@@ -297,7 +306,11 @@
         "profile_imported": "Profile « {name} » imported",
         "theme_applied": "Theme applied",
         "item_not_found": "Item not found",
-        "no_active_configs": "Keine aktive Konfiguration in Fleasion zum Erfassen."
+        "no_active_configs": "Keine aktive Konfiguration in Fleasion zum Erfassen.",
+        "validated": "✓ Konfiguration validiert — gemeldete Abhängigkeiten blockieren nicht mehr.",
+        "validation_reset": "Validierung zurückgesetzt.",
+        "fleasion_folder_inaccessible": "Aktiver Fleasion-Ordner nicht zugänglich.",
+        "restart_failed": "Die Anwendung konnte nicht neu gestartet werden."
     },
     "confirm": {
         "delete_title": "Löschen",
@@ -516,8 +529,8 @@
         "delete": "Delete",
         "apply": "Apply",
         "export": "Export",
-        "import": "Import",
-        "import_tooltip": "Import a profile (.rcmprofile)",
+        "import": "Profil importieren",
+        "import_tooltip": "Ein Profil importieren (.zip)",
         "no_profiles": "No profiles yet — create the first one.",
         "no_description": "No description",
         "count_one": "1 configuration",
@@ -542,11 +555,16 @@
         "import_into": "In ein Profil importieren",
         "import_into_tooltip": "Eine Konfiguration (Datei/ZIP) importieren und ein Profil damit erstellen",
         "capture_title": "Als Profil speichern",
-        "capture_note_saved": "Aktuelle Konfiguration erfasst — {count} Konfiguration{s} gespeichert",
         "import_into_dialog": "Eine Konfiguration in ein Profil importieren",
         "import_into_filter": "Konfigurationen (*.zip *.json);;Alle Dateien (*)",
         "browse": "Bibliothek durchsuchen…",
-        "browse_tooltip": "Konfiguration über den Baum wählen"
+        "browse_tooltip": "Konfiguration über den Baum wählen",
+        "detected_note": "In Fleasion erkannte Konfigurationen: {count}",
+        "import_filter": "RCM-Profil (*.zip *.rcmprofile);;Alle Dateien (*)",
+        "conflict_title": "Profil existiert bereits",
+        "conflict_text": "Ein Profil « {name} » existiert bereits. Was möchten Sie tun?",
+        "conflict_replace": "Ersetzen",
+        "conflict_copy": "Kopie erstellen"
     },
     "theme": {
         "dark": "Dark",
@@ -606,5 +624,84 @@
         "offline": "Asset-Repository nicht erreichbar (offline?). Lokaler Cache wird verwendet.",
         "invalid_manifest": "Ungültiges oder nicht unterstütztes Asset-Manifest.",
         "no_remote": "Kein Remote-Asset-Repository konfiguriert."
+    },
+    "validation": {
+        "validate": "✓ Validieren",
+        "validate_tooltip": "Bestätigen, dass diese Konfiguration trotz der gemeldeten Abhängigkeiten funktioniert",
+        "title": "Validierung der Konfiguration",
+        "question": "Funktioniert diese Konfiguration trotz der derzeit gemeldeten Abhängigkeiten korrekt?",
+        "yes": "✓ Ja, sie funktioniert",
+        "no": "✕ Nein",
+        "validated": "✓ Validierte",
+        "validated_note": "Gemeldete Abhängigkeiten werden für diese Konfiguration ignoriert (Benutzervalidierung).",
+        "reset": "Zurücksetzen",
+        "reset_tooltip": "Validierung zurücksetzen (gemeldete Abhängigkeiten werden wieder blockierend)"
+    },
+    "onboarding": {
+        "language": {
+            "title": "Wähle deine Sprache",
+            "body": "Die App ist in mehreren Sprachen verfügbar. Du kannst sie jederzeit in den Einstellungen ändern."
+        },
+        "continue": "Weiter",
+        "step_add": {
+            "title": "Dateien hinzufügen",
+            "body": "Ziehe deine Dateien hierher, um sie hinzuzufügen. Du kannst auch klicken, um deine Dateien zu durchsuchen."
+        },
+        "step_nav": {
+            "title": "Navigation",
+            "body": "Verwende diese Schaltflächen, um in deiner Navigation zurück- oder vorwärtszugehen."
+        },
+        "step_trash": {
+            "title": "Papierkorb",
+            "body": "Hier findest du gelöschte Konfigurationen und verwaltest deinen Papierkorb."
+        },
+        "step_profiles": {
+            "title": "Profile",
+            "body": "Erstelle und wende deine Konfigurationsprofile schnell an."
+        },
+        "step_home": {
+            "title": "Startseite",
+            "body": "Komm hierher zurück, um alle deine Kategorien und Konfigurationen zu finden."
+        },
+        "step_favorites": {
+            "title": "Favoriten",
+            "body": "Hier findest du alle deine Lieblingskonfigurationen."
+        },
+        "step_search": {
+            "title": "Suche",
+            "body": "Suche schnell nach einer Konfiguration, einer Waffe, einem Skin, einem Charm oder einem anderen Element."
+        },
+        "step_settings": {
+            "title": "Einstellungen",
+            "body": "Hier findest du deine Einstellungen, Sprache, Thema und App-Optionen."
+        },
+        "done": {
+            "title": "Du bist bereit!",
+            "body": "Du kennst jetzt die wichtigsten Funktionen von RivalsConfigManager."
+        },
+        "next": "Weiter",
+        "prev": "Zurück",
+        "finish": "Fertig",
+        "got_it": "Verstanden",
+        "progress": "{current} / {total}"
+    },
+    "batch_import": {
+        "title": "Mehrere Elemente importieren",
+        "count": "{count} Element{e} erkannt",
+        "to_choose": "ℹ️ Ziel auswählen",
+        "detected": "✓ Erkannt: {label}",
+        "manual": "Ziel manuell gewählt",
+        "import_button": "Die {count} Element{e} importieren",
+        "imported": "{count} Element{e} importiert",
+        "failed": "Einige Elemente fehlgeschlagen: {names}",
+        "destination_tooltip": "Reales Ziel in dieser Kategorie (leer = die Kategorie selbst)",
+        "choose_category": "Kategorie wählen",
+        "choose_destination": "Ziel wählen",
+        "choose_weapon": "Waffe wählen",
+        "no_sublevel": "Keine Unterebene — die Kategorie ist das Ziel",
+        "new_destination": "+ Neues Ziel",
+        "new_destination_title": "Neues Ziel",
+        "new_destination_prompt": "Name des neuen Ziels:",
+        "new_destination_tooltip": "Ein neues Ziel in dieser Kategorie erstellen (explizite Aktion)"
     }
 }

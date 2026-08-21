@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import QSize, Qt, Signal
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -25,9 +25,10 @@ from PySide6.QtWidgets import (
 )
 
 from app.backup_manager import BackupInfo
-from app.config import data_dir, normalize_path
+from app.config import admin_enabled, data_dir, normalize_path
 from app.i18n import available_languages, language_display_name, t
 from app.themes import THEMES, theme_keys as _theme_keys
+from ui.icons import refresh_icon
 
 #: Shortcuts shown in the Settings section (key, i18n label). The actual
 #: shortcuts are registered in the main window; this list is the single
@@ -64,6 +65,8 @@ class SettingsView(QWidget):
     hot_activation_toggled = Signal(bool)
     language_changed = Signal(str)      # language code
     theme_changed = Signal(str, dict)   # theme key, custom palette dict
+    restart_clicked = Signal()          # « Recharger l'application » (v1.3.5)
+    review_tutorial_requested = Signal()  # « Revoir le tutoriel » (v1.3.9)
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -107,6 +110,25 @@ class SettingsView(QWidget):
         self._refresh_btn.clicked.connect(self.refresh_clicked)
         self._sync_assets_btn = QPushButton("", self)
         self._sync_assets_btn.clicked.connect(self.sync_assets_clicked)
+        # v1.3.5 : « Synchroniser les ressources » est un outil
+        # d'administration des assets — invisible dans la version normale
+        # (une seule porte centrale : ``admin_enabled()`` / ``ADMIN_MODE``),
+        # réactivé dans un build admin. Le mécanisme reste intact.
+        self._sync_assets_btn.setVisible(admin_enabled())
+
+        # ---- « Recharger l'application » (v1.3.5) ----------------------- #
+        self._restart_btn = QPushButton("", self)
+        self._restart_btn.setObjectName("VerifyButton")
+        self._restart_btn.setIcon(refresh_icon())
+        self._restart_btn.setIconSize(QSize(16, 16))
+        self._restart_btn.setCursor(Qt.PointingHandCursor)
+        self._restart_btn.clicked.connect(self.restart_clicked)
+        # v1.3.9 : « Revoir le tutoriel » — discret, toujours disponible,
+        # relance le tutoriel dans la langue actuelle sans rien réinitialiser.
+        self._review_tutorial_btn = QPushButton("", self)
+        self._review_tutorial_btn.setObjectName("VerifyButton")
+        self._review_tutorial_btn.setCursor(Qt.PointingHandCursor)
+        self._review_tutorial_btn.clicked.connect(self.review_tutorial_requested)
         self._restore_btn = QPushButton("", self)
         self._restore_btn.clicked.connect(self._open_restore_dialog)
 
@@ -242,7 +264,10 @@ class SettingsView(QWidget):
         # the small-window width limit, so a fourth button must never widen
         # the scroll content (it would push the selectors off-screen).
         sync_row = QHBoxLayout()
+        sync_row.setSpacing(10)
         sync_row.addWidget(self._sync_assets_btn)
+        sync_row.addWidget(self._restart_btn)
+        sync_row.addWidget(self._review_tutorial_btn)
         sync_row.addStretch(1)
         layout.addLayout(sync_row)
         layout.addSpacing(8)
@@ -274,6 +299,12 @@ class SettingsView(QWidget):
         widget.setSizePolicy(QSizePolicy.Ignored, widget.sizePolicy().verticalPolicy())
 
     # ------------------------------------------------------------------ #
+    def refresh_admin_visibility(self) -> None:
+        """(Re)appliquer la porte centrale admin aux outils de gestion des
+        assets (le build normal les masque, le build admin les affiche)."""
+        self._sync_assets_btn.setVisible(admin_enabled())
+
+    # ------------------------------------------------------------------ #
     def retranslate(self) -> None:
         """Apply the current language to every static text (hot switch)."""
         self._title.setText(t("settings.title"))
@@ -297,6 +328,10 @@ class SettingsView(QWidget):
         self._test_btn.setText(t("settings.test"))
         self._refresh_btn.setText(t("settings.refresh"))
         self._sync_assets_btn.setText(t("assets.sync"))
+        self._restart_btn.setText(t("settings.restart"))
+        self._restart_btn.setToolTip(t("settings.restart_tooltip"))
+        self._review_tutorial_btn.setText(t("settings.review_tutorial"))
+        self._review_tutorial_btn.setToolTip(t("settings.review_tutorial_tooltip"))
         self._restore_btn.setText(t("settings.restore"))
         self._open_fleasion_btn.setText(t("settings.open_folder"))
         self._open_library_btn.setText(t("settings.open_folder"))

@@ -1,45 +1,189 @@
-"""Home view: the library categories as clickable cards."""
+"""Home view: the library categories as clickable cards + the drop zone.
+
+The drop zone is the FIRST thing a new user must understand: « I can drag my
+files here to add them ». It is therefore a large, labeled zone (icon +
+title + subtitle) with clear normal / hover / drag-over states, a light
+animation on drag-over, and a click-to-browse action that reuses the exact
+same import flow as a drop (never a second import system).
+"""
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import QSize, Qt, Signal
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtCore import (
+    Property,
+    QEasingCurve,
+    QPoint,
+    QPropertyAnimation,
+    QSize,
+    Qt,
+    Signal,
+)
+from PySide6.QtGui import QColor, QCursor
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget,
+)
 
 from app.categories import sort_configs, sort_nodes
 from app.i18n import t
 from app.models import Node
-from ui.icons import gear_icon, plus_icon
+from ui.card_specs import config_spec, folder_spec
+from ui.icons import plus_icon
+from ui.theme import theme_color
 from ui.widgets.grid import CardGrid, CardSpec
 
 EMPTY_TEXT = "Le dossier de bibliothèque est vide ou introuvable."
 
 
 class DropZone(QWidget):
-    """Discreet drop zone: a small semi-transparent square with a plus
-    icon and **no text**. Passing a file over it highlights it slightly;
-    releasing the file opens the import popup. Only local file URLs are
-    accepted; every other drop is ignored.
+    """Large, self-explanatory drop zone (UI/UX phase).
+
+    * normal state: dashed accent border + subtle tint, icon + title +
+      subtitle (« Glissez-déposez vos fichiers ici pour les ajouter » /
+      « Vous pouvez également cliquer pour parcourir vos fichiers »);
+    * hover state: stronger tint and border;
+    * drag-over state: accent highlight with a light glow animation and a
+      clear « this zone accepts the file » feedback;
+    * click: opens the file browser (same import flow as a drop).
+
+    Only local file URLs are accepted; every other drop is ignored. The
+    whole visual is driven by the active theme (inline stylesheet) so it
+    follows theme switches like the rest of the application.
     """
 
-    files_dropped = Signal(list)  # list[Path]
+    files_dropped = Signal(list)   # list[Path]
+    browse_clicked = Signal()      # click → file browser
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.setObjectName("DropZone")
         self.setAcceptDrops(True)
-        self.setFixedSize(44, 44)
+        self.setCursor(QCursor(Qt.PointingHandCursor))
+        self.setMinimumHeight(86)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-        icon = QLabel(self)
-        icon.setObjectName("DropZoneIcon")
-        icon.setPixmap(plus_icon().pixmap(QSize(22, 22)))
-        icon.setAlignment(Qt.AlignCenter)
+        self._hover = False
+        self._dragging = False
+        self._glow = 0.0
+        self._press_pos: QPoint | None = None
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(icon)
+        # ---- Icon + title + subtitle ---------------------------------- #
+        self._icon = QLabel(self)
+        self._icon.setObjectName("DropZoneIcon")
+        self._icon.setPixmap(plus_icon().pixmap(QSize(26, 26)))
+        self._icon.setAlignment(Qt.AlignCenter)
+        self._icon.setAttribute(Qt.WA_TransparentForMouseEvents)
 
+        self._title = QLabel("", self)
+        self._title.setObjectName("DropZoneTitle")
+        self._title.setAlignment(Qt.AlignCenter)
+        self._title.setAttribute(Qt.WA_TransparentForMouseEvents)
+
+        self._subtitle = QLabel("", self)
+        self._subtitle.setObjectName("DropZoneSubtitle")
+        self._subtitle.setAlignment(Qt.AlignCenter)
+        self._subtitle.setAttribute(Qt.WA_TransparentForMouseEvents)
+
+        texts = QVBoxLayout()
+        texts.setContentsMargins(0, 0, 0, 0)
+        texts.setSpacing(2)
+        texts.addWidget(self._title)
+        texts.addWidget(self._subtitle)
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(24, 14, 24, 14)
+        layout.setSpacing(18)
+        layout.addWidget(self._icon, 0, Qt.AlignVCenter)
+        layout.addLayout(texts, 1)
+
+        # ---- Light glow animation (drag-over / hover) ------------------ #
+        self._anim = QPropertyAnimation(self, b"glow", self)
+        self._anim.setDuration(160)
+        self._anim.setEasingCurve(QEasingCurve.OutCubic)
+
+        self.retranslate()
+        self._apply_visual()
+
+    # ------------------------------------------------------------------ #
+    # Visual states (driven by the active theme)
+    # ------------------------------------------------------------------ #
+    def _get_glow(self) -> float:
+        return self._glow
+
+    def _set_glow(self, value: float) -> None:
+        self._glow = max(0.0, min(1.0, float(value)))
+        self._apply_visual()
+
+    glow = Property(float, _get_glow, _set_glow)
+
+    def _apply_visual(self) -> None:
+        """Rebuild the inline stylesheet from the active theme colors.
+
+        Normal: subtle dashed accent border. Hover: stronger. Drag-over:
+        full accent highlight (the glow animation interpolates it).
+        """
+        accent = QColor(theme_color("accent"))
+        text = QColor(theme_color("text"))
+        dim = QColor(theme_color("text_dim"))
+        glow = 1.0 if self._dragging else (0.35 if self._hover else 0.0)
+        border_alpha = int(80 + 175 * glow)
+        bg_alpha = int(10 + 80 * glow)
+        border_style = "solid" if self._dragging else "dashed"
+        self.setStyleSheet(
+            f"QWidget#DropZone {{"
+            f" background-color: rgba({accent.red()}, {accent.green()}, {accent.blue()}, {bg_alpha});"
+            f" border: 2px {border_style} rgba({accent.red()}, {accent.green()}, {accent.blue()}, {border_alpha});"
+            f" border-radius: 16px; }}"
+            f"QWidget#DropZone QLabel {{ border: none; background: transparent; }}"
+            f"QLabel#DropZoneTitle {{ color: {text.name()}; font-size: 11.5pt; font-weight: 600; }}"
+            f"QLabel#DropZoneSubtitle {{ color: {dim.name()}; font-size: 9.5pt; }}"
+        )
+
+    def retranslate(self) -> None:
+        """Apply the current language to the drop zone texts (hot switch)."""
+        self._title.setText(t("home.drop_zone_title"))
+        self._subtitle.setText(t("home.drop_zone_subtitle"))
+
+    # ------------------------------------------------------------------ #
+    # Hover
+    # ------------------------------------------------------------------ #
+    def enterEvent(self, event) -> None:  # noqa: N802 (Qt naming)
+        self._hover = True
+        self._apply_visual()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event) -> None:  # noqa: N802 (Qt naming)
+        self._hover = False
+        self._apply_visual()
+        super().leaveEvent(event)
+
+    # ------------------------------------------------------------------ #
+    # Click → browse files
+    # ------------------------------------------------------------------ #
+    def mousePressEvent(self, event) -> None:  # noqa: N802 (Qt naming)
+        if event.button() == Qt.LeftButton:
+            self._press_pos = event.position().toPoint()
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event) -> None:  # noqa: N802 (Qt naming)
+        was_pressed = self._press_pos is not None
+        self._press_pos = None
+        if (
+            event.button() == Qt.LeftButton
+            and was_pressed
+            and self.rect().contains(event.position().toPoint())
+        ):
+            self.browse_clicked.emit()
+        super().mouseReleaseEvent(event)
+
+    # ------------------------------------------------------------------ #
+    # Drag & drop (only local files — same import flow as before)
     # ------------------------------------------------------------------ #
     def dragEnterEvent(self, event) -> None:  # noqa: N802 (Qt naming)
         if self._has_local_files(event.mimeData()):
@@ -71,24 +215,28 @@ class DropZone(QWidget):
         else:
             event.ignore()
 
-    # ------------------------------------------------------------------ #
     def _has_local_files(self, mime) -> bool:
         return any(url.isLocalFile() and url.toLocalFile() for url in mime.urls())
 
     def _set_dragging(self, active: bool) -> None:
-        if self.property("drag") == active:
+        """Smoothly animate the highlight in (drag-over) or out (leave)."""
+        if self._dragging == active:
             return
+        self._dragging = active
         self.setProperty("drag", active)
-        self.style().unpolish(self)
-        self.style().polish(self)
+        self._anim.stop()
+        self._anim.setStartValue(self._glow)
+        self._anim.setEndValue(1.0 if active else 0.0)
+        self._anim.start()
+        self._apply_visual()
 
 
 class HomeView(QWidget):
     category_clicked = Signal(object)   # Node
     config_clicked = Signal(object)     # ConfigItem (direct config at root)
-    settings_requested = Signal()
     edit_image_requested = Signal(object)  # Node or ConfigItem
     files_dropped = Signal(list)        # list[Path]
+    browse_clicked = Signal()           # clic sur la zone de dépôt
     delete_requested = Signal(object)   # Node or ConfigItem
     toggle_activation_requested = Signal(object)  # ConfigItem
     favorite_toggled = Signal(object)  # ConfigItem
@@ -115,17 +263,6 @@ class HomeView(QWidget):
         self._subtitle = QLabel("", self)
         self._subtitle.setObjectName("AppSubtitle")
 
-        self._settings_btn = QPushButton("", self)
-        self._settings_btn.setObjectName("IconButton")
-        self._settings_btn.setIcon(gear_icon())
-        self._settings_btn.setIconSize(QSize(18, 18))
-        self._settings_btn.clicked.connect(self.settings_requested)
-
-        # Pas de bouton d'import : la petite zone de drop discrète (en haut
-        # à droite) est le seul point d'entrée.
-        self._drop_zone = DropZone(self)
-        self._drop_zone.files_dropped.connect(self.files_dropped)
-
         header = QWidget(self)
         header_layout = QVBoxLayout(header)
         header_layout.setContentsMargins(0, 0, 0, 0)
@@ -133,19 +270,19 @@ class HomeView(QWidget):
         header_layout.addWidget(self._title)
         header_layout.addWidget(self._subtitle)
 
-        actions = QWidget(self)
-        actions_layout = QHBoxLayout(actions)
-        actions_layout.setContentsMargins(0, 0, 0, 0)
-        actions_layout.setSpacing(10)
-        actions_layout.addStretch(1)
-        actions_layout.addWidget(self._drop_zone)
-        actions_layout.addWidget(self._settings_btn)
+        # ---- La zone de dépôt : grande, explicite, pleine largeur. Le
+        # bouton Paramètres secondaire (doublon avec celui de la barre du
+        # haut) a été supprimé ; l'espace sert à la zone de dépôt.
+        self._drop_zone = DropZone(self)
+        self._drop_zone.files_dropped.connect(self.files_dropped)
+        self._drop_zone.browse_clicked.connect(self.browse_clicked)
 
         top = QWidget(self)
         top_layout = QVBoxLayout(top)
         top_layout.setContentsMargins(0, 0, 0, 0)
+        top_layout.setSpacing(12)
         top_layout.addWidget(header)
-        top_layout.addWidget(actions)
+        top_layout.addWidget(self._drop_zone)
 
         self._grid = CardGrid(self)
         self._grid.edit_image_requested.connect(self.edit_image_requested)
@@ -186,7 +323,7 @@ class HomeView(QWidget):
     def retranslate(self) -> None:
         """Apply the current language to every static text (hot switch)."""
         self._subtitle.setText(t("home.subtitle"))
-        self._settings_btn.setText(t("settings.button"))
+        self._drop_zone.retranslate()
         self._clear_configs_btn.setText(t("home.clear_configs"))
         self._clear_configs_btn.setToolTip(t("home.clear_configs_tooltip"))
         self._empty.setText(t("home.empty"))
@@ -211,39 +348,28 @@ class HomeView(QWidget):
         if root is not None:
             self._folder_key = str(root.path)
             # Ordre canonique des catégories (Primaire → Secondaire → Mêlée
-            # → Utilitaire), puis le reste par ordre alphabétique.
+            # → Utilitaire), puis le reste par ordre alphabétique. Toutes les
+            # cartes sont construites par les constructeurs centraux
+            # (ui.card_specs) : la même étoile favori, le même emplacement,
+            # la même interaction et la même persistance pour chaque carte
+            # — aucune vue ne peut oublier le contrôle favori (v1.3.4/1.3.5).
             for sub in sort_nodes(root.subdirs):
-                count = sub.total_items()
-                label = t("unit.element_one") if count == 1 else t("unit.element_many")
                 specs.append(
-                    CardSpec(
-                        title=sub.name,
-                        subtitle=f"{count} {label}",
-                        preview=sub.preview,
+                    folder_spec(
+                        sub,
                         on_click=lambda n=sub: self.category_clicked.emit(n),
-                        edit_target=sub,
-                        delete_target=sub,
-                        key=str(sub.path),
+                        library_root=root,
+                        favorites_provider=self._favorites_provider,
                     )
                 )
             for config in sort_configs(root.configs):
-                key = str(config.path)
                 specs.append(
-                    CardSpec(
-                        title=config.name,
-                        subtitle=t("unit.configuration"),
-                        preview=config.preview,
+                    config_spec(
+                        config,
                         on_click=lambda c=config: self.config_clicked.emit(c),
-                        edit_target=config,
-                        delete_target=config,
-                        key=key,
-                        activation_target=config,
-                        activation_state=self._card_state(config),
-                        is_favorite=bool(self._favorites_provider(key))
-                        if self._favorites_provider is not None else False,
-                        favorite_target=config if self._favorites_provider is not None else None,
-                        status=self._status_provider(config)
-                        if self._status_provider is not None else None,
+                        activation_provider=self._activation_provider,
+                        favorites_provider=self._favorites_provider,
+                        status_provider=self._status_provider,
                     )
                 )
         self._grid.set_cards(self._apply_stored_order(specs))
@@ -263,8 +389,3 @@ class HomeView(QWidget):
     def _on_order_changed(self, keys: list[str]) -> None:
         if self._folder_key:
             self.order_changed.emit(self._folder_key, list(keys))
-
-    def _card_state(self, config: object) -> str | None:
-        if self._activation_provider is None:
-            return None
-        return self._activation_provider(config)

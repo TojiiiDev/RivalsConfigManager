@@ -99,13 +99,21 @@
         "backup_item": "{label}  —  {count} dosya",
         "restore_selection": "Seçimi geri yükle",
         "theme": "Theme",
-        "shortcuts_title": "Keyboard shortcuts"
+        "shortcuts_title": "Keyboard shortcuts",
+        "restart": "Uygulamayı yeniden başlat",
+        "restart_tooltip": "Uygulamayı temiz şekilde kapatıp yeniden başlatır (sayfa yenileme gibi). Hiçbir şey kaybolmaz: favoriler, profiller, dil, tema ve yollar kaydedilir.",
+        "review_tutorial": "Eğitimi tekrar gör",
+        "review_tutorial_tooltip": "Uygulama tanıtım eğitimini yeniden başlatır"
     },
     "home": {
         "subtitle": "Yapılandırmalarınıza göz atmak için bir kategori seçin.",
         "empty": "Kitaplık klasörü boş veya bulunamadı.",
         "clear_configs": "Clear Configs",
-        "clear_configs_tooltip": "Yapılandırmaları Fleasion'ın etkin klasöründen Windows Çöp Kutusu'na taşı (asla kalıcı silme)."
+        "clear_configs_tooltip": "Yapılandırmaları Fleasion'ın etkin klasöründen Windows Çöp Kutusu'na taşı (asla kalıcı silme).",
+        "drop_zone_title": "Dosyalarınızı eklemek için buraya sürükleyip bırakın",
+        "drop_zone_subtitle": "Dosyalarınıza göz atmak için tıklayabilirsiniz",
+        "browse_files": "Dosya ekle",
+        "browse_filter": "Yapılandırmalar (*.zip *.json);;Tüm dosyalar (*)"
     },
     "browse": {
         "empty_folder": "Bu klasörde öğe yok.",
@@ -163,7 +171,8 @@
         "missing": "✗ {name}",
         "missing_note": "Gerekli dosya bulunamadı",
         "explanation": "Bu yapılandırma bu dosya olmadan düzgün çalışmayabilir.",
-        "invalid_json": "✗ Geçersiz JSON — bağımlılıklar bilinmiyor"
+        "invalid_json": "✗ Geçersiz JSON — bağımlılıklar bilinmiyor",
+        "ignored": "✓ {name} (doğrulandı — engellemiyor)"
     },
     "trash": {
         "title": "Çöp Kutusu",
@@ -297,7 +306,11 @@
         "profile_imported": "Profile « {name} » imported",
         "theme_applied": "Theme applied",
         "item_not_found": "Item not found",
-        "no_active_configs": "Fleasion'da yakalanacak aktif yapılandırma yok."
+        "no_active_configs": "Fleasion'da yakalanacak aktif yapılandırma yok.",
+        "validated": "✓ Yapılandırma doğrulandı — işaretli bağımlılıklar artık engellemiyor.",
+        "validation_reset": "Doğrulama sıfırlandı.",
+        "fleasion_folder_inaccessible": "Fleasion aktif klasörü erişilemez.",
+        "restart_failed": "Uygulama yeniden başlatılamadı."
     },
     "confirm": {
         "delete_title": "Sil",
@@ -516,8 +529,8 @@
         "delete": "Delete",
         "apply": "Apply",
         "export": "Export",
-        "import": "Import",
-        "import_tooltip": "Import a profile (.rcmprofile)",
+        "import": "Profil içe aktar",
+        "import_tooltip": "Bir profil içe aktar (.zip)",
         "no_profiles": "No profiles yet — create the first one.",
         "no_description": "No description",
         "count_one": "1 configuration",
@@ -542,11 +555,16 @@
         "import_into": "Bir profile içe aktar",
         "import_into_tooltip": "Bir yapılandırmayı (dosya/ZIP) içe aktarın ve bununla bir profil oluşturun",
         "capture_title": "Profil olarak kaydet",
-        "capture_note_saved": "Mevcut yapılandırma yakalandı — {count} yapılandırma{s} kaydedildi",
         "import_into_dialog": "Bir profile yapılandırma içe aktar",
         "import_into_filter": "Yapılandırmalar (*.zip *.json);;Tüm dosyalar (*)",
         "browse": "Kütüphaneyi göz at…",
-        "browse_tooltip": "Ağaç üzerinden bir yapılandırma seçin"
+        "browse_tooltip": "Ağaç üzerinden bir yapılandırma seçin",
+        "detected_note": "Fleasion'da algılanan yapılandırmalar: {count}",
+        "import_filter": "RCM Profili (*.zip *.rcmprofile);;Tüm dosyalar (*)",
+        "conflict_title": "Profil zaten var",
+        "conflict_text": "« {name} » adında bir profil zaten var. Ne yapmak istersiniz?",
+        "conflict_replace": "Değiştir",
+        "conflict_copy": "Kopya oluştur"
     },
     "theme": {
         "dark": "Dark",
@@ -606,5 +624,84 @@
         "offline": "Kaynak deposuna ulaşılamadı (çevrimdışı?). Yerel önbellek kullanılıyor.",
         "invalid_manifest": "Geçersiz veya desteklenmeyen kaynak manifesti.",
         "no_remote": "Uzak kaynak deposu yapılandırılmadı."
+    },
+    "validation": {
+        "validate": "✓ Doğrula",
+        "validate_tooltip": "Bu yapılandırmanın işaretli bağımlılıklara rağmen çalıştığını onayla",
+        "title": "Yapılandırma doğrulaması",
+        "question": "Bu yapılandırma, şu anda işaretlenen bağımlılıklara rağmen doğru şekilde çalışıyor mu?",
+        "yes": "✓ Evet, çalışıyor",
+        "no": "✕ Hayır",
+        "validated": "✓ Doğrulandı",
+        "validated_note": "İşaretli bağımlılıklar bu yapılandırma için yok sayılır (kullanıcı doğrulaması).",
+        "reset": "Sıfırla",
+        "reset_tooltip": "Doğrulamayı sıfırla (işaretli bağımlılıklar tekrar engelleyici olur)"
+    },
+    "onboarding": {
+        "language": {
+            "title": "Dilinizi seçin",
+            "body": "Uygulama birçok dilde mevcuttur. İstediğiniz zaman Ayarlar'dan değiştirebilirsiniz."
+        },
+        "continue": "Devam et",
+        "step_add": {
+            "title": "Dosyalarınızı ekleyin",
+            "body": "Dosyalarınızı eklemek için buraya sürükleyip bırakın. Ayrıca tıklayarak dosyalarınıza göz atabilirsiniz."
+        },
+        "step_nav": {
+            "title": "Gezinme",
+            "body": "Gezinmenizde geri gitmek veya ileri gitmek için bu düğmeleri kullanın."
+        },
+        "step_trash": {
+            "title": "Çöp kutusu",
+            "body": "Silinen yapılandırmalarınızı burada bulun ve çöp kutunuzu yönetin."
+        },
+        "step_profiles": {
+            "title": "Profiller",
+            "body": "Yapılandırma profillerinizi hızlıca oluşturun ve uygulayın."
+        },
+        "step_home": {
+            "title": "Ana sayfa",
+            "body": "Tüm kategorilerinizi ve yapılandırmalarınızı bulmak için buraya geri dönün."
+        },
+        "step_favorites": {
+            "title": "Favoriler",
+            "body": "Tüm favori yapılandırmalarınızı burada bulun."
+        },
+        "step_search": {
+            "title": "Arama",
+            "body": "Bir yapılandırmayı, silahı, skin'i, charm'ı veya başka bir öğeyi hızlıca arayın."
+        },
+        "step_settings": {
+            "title": "Ayarlar",
+            "body": "Tercihlerinizi, dilinizi, temanızı ve uygulama seçeneklerinizi burada bulun."
+        },
+        "done": {
+            "title": "Hazırsınız!",
+            "body": "Artık RivalsConfigManager'ın ana işlevlerini biliyorsunuz."
+        },
+        "next": "İleri",
+        "prev": "Geri",
+        "finish": "Bitir",
+        "got_it": "Anladım",
+        "progress": "{current} / {total}"
+    },
+    "batch_import": {
+        "title": "Birden fazla öğeyi içe aktar",
+        "count": "{count} öğe algılandı",
+        "to_choose": "ℹ️ Seçilecek hedef",
+        "detected": "✓ Algılandı: {label}",
+        "manual": "Hedef elle seçildi",
+        "import_button": "{count} öğeyi içe aktar",
+        "imported": "{count} öğe içe aktarıldı",
+        "failed": "Bazı öğeler başarısız oldu: {names}",
+        "destination_tooltip": "Bu kategorideki gerçek hedef (boş = kategorinin kendisi)",
+        "choose_category": "Bir kategori seçin",
+        "choose_destination": "Bir hedef seçin",
+        "choose_weapon": "Bir silah seçin",
+        "no_sublevel": "Alt düzey yok — kategori hedefin kendisidir",
+        "new_destination": "+ Yeni hedef",
+        "new_destination_title": "Yeni hedef",
+        "new_destination_prompt": "Yeni hedefin adı:",
+        "new_destination_tooltip": "Bu kategoride yeni bir hedef oluştur (açık eylem)"
     }
 }

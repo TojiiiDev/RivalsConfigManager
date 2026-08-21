@@ -366,6 +366,8 @@ def test_profile_persists_across_manager_instances(tmp_path: Path) -> None:
 
 
 def test_profile_export_import_roundtrip(tmp_path: Path) -> None:
+    import zipfile
+
     manager = _profile_manager(tmp_path)
     manager.create(
         "Chill",
@@ -375,14 +377,18 @@ def test_profile_export_import_roundtrip(tmp_path: Path) -> None:
             ProfileEntry(name="Nemesis Charm", rel_path="Charms/Nemesis Charm.json", category="Charms"),
         ],
     )
-    exported = manager.export_profile("Chill", tmp_path / "Chill.rcmprofile")
-    assert exported.suffix == ".rcmprofile"
+    exported = manager.export_profile("Chill", tmp_path / "Chill.zip")
+    assert exported.suffix == ".zip"
     assert exported.exists()
-    raw = json.loads(exported.read_text(encoding="utf-8"))
+    # Le fichier est un vrai ZIP contenant le manifeste profile.json.
+    assert zipfile.is_zipfile(exported)
+    with zipfile.ZipFile(exported) as zf:
+        raw = json.loads(zf.read("profile.json").decode("utf-8"))
     # Jamais de chemins absolus ni de données personnelles dans l'export.
     payload = json.dumps(raw)
     assert "C:" not in payload and "\\\\" not in payload
     assert "APPDATA" not in payload.upper()
+    assert raw["name"] == "Chill" and raw["format"] == 1
 
     other = _profile_manager(tmp_path / "other")
     imported = other.import_profile(exported)
@@ -391,7 +397,30 @@ def test_profile_export_import_roundtrip(tmp_path: Path) -> None:
     assert other.get("Chill").entries[0].rel_path == "Secondary/Sheriff.json"
 
 
+def test_profile_import_legacy_rcmprofile_still_accepted(tmp_path: Path) -> None:
+    """Les anciens profils ``.rcmprofile`` (JSON simple) restent importables
+    — l'import accepte le format actuel (.zip) et l'ancien (.rcmprofile)."""
+    manager = _profile_manager(tmp_path)
+    legacy = tmp_path / "Old.rcmprofile"
+    legacy.write_text(
+        json.dumps(
+            {
+                "name": "Old",
+                "entries": [
+                    {"name": "A", "rel_path": "Charms/a.json", "category": "Charms"}
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    imported = manager.import_profile(legacy)
+    assert imported.name == "Old"
+    assert manager.get("Old").count == 1
+
+
 def test_profile_import_invalid_file_rejected(tmp_path: Path) -> None:
+    import zipfile
+
     manager = _profile_manager(tmp_path)
     bad = tmp_path / "bad.rcmprofile"
     bad.write_text("{ nope", encoding="utf-8")
@@ -401,6 +430,21 @@ def test_profile_import_invalid_file_rejected(tmp_path: Path) -> None:
     empty.write_text(json.dumps({"entries": []}), encoding="utf-8")
     with pytest.raises(ProfileError):
         manager.import_profile(empty)
+    # Un ZIP qui n'est PAS un profil (pas de profile.json) est refusé.
+    not_a_profile = tmp_path / "mods.zip"
+    with zipfile.ZipFile(not_a_profile, "w") as zf:
+        zf.writestr("config.json", '{"replacement_rules": []}')
+    with pytest.raises(ProfileError):
+        manager.import_profile(not_a_profile)
+    # Un profil de version future inconnue est refusé (jamais importé à
+    # l'aveugle).
+    future = tmp_path / "future.rcmprofile"
+    future.write_text(
+        json.dumps({"format": 999, "name": "Future", "entries": []}),
+        encoding="utf-8",
+    )
+    with pytest.raises(ProfileError):
+        manager.import_profile(future)
 
 
 def test_profile_import_same_name_never_overwrites(tmp_path: Path) -> None:

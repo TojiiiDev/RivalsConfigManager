@@ -14,6 +14,44 @@ anciens fichiers au passage).
 
 ---
 
+## Fonctionnalités principales
+
+- **Gestion de configurations** : parcours de la bibliothèque par
+  catégorie → arme → configuration, activation en un clic (copie validée +
+  sauvegarde des anciens fichiers).
+- **Import individuel et multiple** : ajoutez un ou plusieurs mods en une
+  seule opération (bouton *Ajouter des fichiers* ou glisser-déposer) ; les ZIP
+  contenant plusieurs mods sont découpés automatiquement.
+- **Sélection rapide des destinations** : chaque élément importé est trié via
+  un sélecteur **Catégorie → Destination** construit depuis la structure
+  réelle de la bibliothèque (y compris les armes vides) — aucune catégorie
+  fantôme n'est créée.
+- **Détection automatique** : catégorie/destination proposées en analysant le
+  fichier, toujours corrigibles manuellement.
+- **Profils** : créez, appliquez et **exportez/importez** des profils en
+  fichier `.zip` portable (manifeste `profile.json`, références relatives,
+  gestion des conflits de nom).
+- **Favoris** : étoilez vos configurations favorites pour les retrouver dans
+  une page dédiée.
+- **Recherche** : barre de recherche globale (noms de catégories, armes,
+  skins, configurations).
+- **Textures & Skyboxes** : catégories gérées comme les autres, avec previews.
+- **Corbeille** : suppression douce (déplacement vers la Corbeille Windows,
+  jamais de suppression définitive).
+- **Validation des dépendances** : fichiers manquants/JSON invalides signalés
+  avant activation, avec possibilité de valider manuellement.
+- **Plusieurs langues** : 10 langues disponibles (français, anglais,
+  allemand, espagnol, italien, néerlandais, polonais, portugais, russe,
+  turc). **L'anglais est la langue par défaut** au premier lancement ; elle
+  reste modifiable à tout moment dans les Paramètres.
+- **Tutoriel intégré** : parcours de découverte au premier lancement
+  (spotlight translucide, repositionnement responsive).
+- **Thèmes et préférences** : thème clair/sombre, langue, sauvegarde
+  automatique, dossier actif Fleasion, raccourcis clavier, bouton
+  *Recharger*.
+
+---
+
 ## 1. Installation pour le développeur
 
 Prérequis : **Python 3.10+** (testé sous Python 3.14, Windows 10/11).
@@ -33,7 +71,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Au **premier lancement**, l'application demande les deux dossiers :
+Au **premier lancement**, l'application demande deux dossiers :
 
 | Champ | Exemple |
 |---|---|
@@ -54,11 +92,52 @@ Tout se passe dans la page **Paramètres** (⚙) :
 - Boutons : **Test Connection**, **Refresh Library**, **Open Folder**,
   **Restore Backup**, et une option de sauvegarde automatique avant
   remplacement.
+- **Recharger** : relance proprement l'application (comme une actualisation
+  de page), sans perdre aucun réglage.
 
 Les sauvegardes sont créées dans `%APPDATA%\RivalsConfigManager\backups`
 et peuvent être restaurées depuis les paramètres.
 
-## 4. Création du `.exe`
+## 4. Langues
+
+L'application démarre avec **l'anglais comme langue par défaut** pour une
+nouvelle installation. Au premier lancement, l'écran de choix de langue
+apparaît avec l'anglais présélectionné : choisissez n'importe quelle langue
+disponible — elle est appliquée immédiatement, persistée, et le tutoriel
+démarre dans cette langue.
+
+Les 10 langues disponibles : français, anglais, allemand, espagnol, italien,
+néerlandais, polonais, portugais, russe, turc.
+
+## 5. Import de configurations
+
+- **Import individuel** : bouton *Ajouter des fichiers* ou glisser-déposer
+  d'un fichier/dossier → choix de la destination (**Catégorie → Arme**, une
+  arme vide est une destination valide) → import.
+- **Import multiple** : plusieurs fichiers/dossiers/ZIP d'un coup → fenêtre
+  **« Importer plusieurs éléments »** : chaque élément est listé avec sa
+  propre sélection **Catégorie → Destination** (indépendante des autres),
+  pré-remplie par la détection automatique si elle est fiable. Un seul clic
+  importe tout le lot ; les échecs éventuels sont signalés sans bloquer le
+  reste.
+- Les destinations proposées viennent toujours de la **structure réelle** de
+  la bibliothèque ; pour créer une nouvelle destination, utilisez l'action
+  explicite « + Nouvelle destination » (jamais de catégorie créée
+  automatiquement).
+
+## 6. Profils
+
+La page **Profils** permet de :
+
+- **Créer** un profil (nom + configurations) et l'**appliquer** d'un clic ;
+- **Exporter le profil** en fichier `.zip` (`NomDuProfil.zip`) contenant un
+  manifeste `profile.json` (format versionné, références relatives — aucun
+  chemin absolu ni nom d'utilisateur) ;
+- **Importer un profil** depuis un `.zip` : le fichier est validé (un ZIP qui
+  n'est pas un profil est refusé proprement) ; en cas de conflit de nom, vous
+  choisissez entre remplacer, créer une copie ou annuler.
+
+## 7. Création du `.exe`
 
 ```bash
 pyinstaller RivalsConfigManager.spec --noconfirm
@@ -75,24 +154,7 @@ final n'a pas besoin d'installer Python.
   pyinstaller --noconfirm --onefile --windowed --icon assets/icon.ico main.py
   ```
 
-## 5. Utilisation du programme
-
-1. L'écran d'accueil affiche les **catégories** de votre bibliothèque
-   (Charms, emotes, FastFlags, Skins, Texture & skyboxes, …) sous forme de
-   cartes — détectées automatiquement par scan du dossier.
-2. Naviguez : **Catégorie → Type d'arme → Arme → Configuration**.
-3. Ouvrez une configuration : aperçu (si une image `preview.png`,
-   `thumbnail.png`, `cover.jpg`, … existe), liste des fichiers inclus.
-4. Cliquez **ACTIVER** : l'application
-   - vérifie que les fichiers existent,
-   - valide les JSON,
-   - sauvegarde les fichiers existants qui seraient remplacés,
-   - copie les fichiers vers le dossier Fleasion,
-   - affiche une confirmation (ou une erreur claire).
-5. La **barre de recherche** cherche dans les noms de catégories, armes,
-   skins et configurations (ex. `sniper`).
-
-## 6. Fonctionnement générique
+## 8. Fonctionnement générique
 
 Le programme ne connaît **aucune** arme, skin ou configuration en dur.
 Au démarrage, il scanne la bibliothèque et construit un arbre :
@@ -112,34 +174,31 @@ automatiquement. Règles de détection :
 - un JSON **directement dans un dossier** = une configuration ;
 - les meshes `.obj` référencés par un JSON sont copiés automatiquement.
 
-## 6bis. Images à tous les niveaux de l'arborescence
+### Images à tous les niveaux de l'arborescence
 
 Chaque élément affiché sous forme de carte (catégorie, sous-dossier, arme,
 configuration finale) peut avoir sa propre image : clic droit sur la carte →
-**Modifier l'image** (ou bouton dans la vue de détail). L'image est stockée
-comme métadonnée séparée (`.image.json` ou `image.json` dans le dossier),
-jusqu'à un fichier par élément, identifié par son **chemin complet** : deux
-éléments portant le même nom à des endroits différents ont des images
-indépendantes. Priorité d'affichage : image personnalisée → preview
-automatique → placeholder. Une image de catégorie ne remplace jamais les
-images de ses enfants.
+**Modifier l'image**. L'image est stockée comme métadonnée séparée
+(`.image.json` ou `image.json` dans le dossier), identifiée par son **chemin
+complet**. Priorité d'affichage : image personnalisée → preview automatique →
+placeholder. Une image de catégorie ne remplace jamais les images de ses
+enfants.
 
-## 6ter. Modèles 3D (OBJ)
+### Modèles 3D (OBJ)
 
 Une configuration peut être associée à un modèle `.obj` :
 
 - **Détection automatique** (déterministe) : `Skin.json` + `Skin.obj`
   (même nom exact) dans le même dossier, ou un unique `.obj` référencé par
   le contenu du JSON, ou un unique `.obj` dans un dossier-configuration.
-  Aucune relation n'est inventée à partir d'un nom partiel.
 - **Ajouter un OBJ** dans la vue de détail : copie le modèle dans le cache
-  de l'application (`obj_cache`), enregistre l'association dans un sidecar
-  `.obj.json` (ou `obj.json`), sans jamais modifier le vrai `.obj` ni le
+  de l'application (`obj_cache`, sous `%APPDATA%`), enregistre l'association
+  dans un sidecar `.obj.json`, sans jamais modifier le vrai `.obj` ni le
   JSON original.
 - À l'activation, le modèle est copié **à côté de la configuration** dans
   le dossier Fleasion.
 
-## 6quater. Activation Fleasion
+### Activation Fleasion
 
 Le bouton **ACTIVER** copie la configuration dans le dossier `configs/` de
 Fleasion puis, si `settings.json` existe, **sélectionne réellement** la
@@ -148,22 +207,24 @@ avec sauvegarde préalable et vérification de l'enregistrement. L'état du
 bouton reflète la réalité : `ACTIVER` → `✓ COPIÉ` (fichiers copiés,
 sélection manuelle requise) → `✓ ACTIF` (sélection confirmée).
 
-## 7. Tests
+## 9. Tests
 
 ```bash
 python -m pytest tests -q
 ```
 
 Les tests couvrent : scan des dossiers, JSON invalides, fichiers manquants,
-copie, sauvegardes, restauration, chemins avec espaces, recherche, et un test
-de bout en bout de l'interface (mode headless).
+copie, sauvegardes, restauration, chemins avec espaces, recherche, import
+individuel/multiple, profils (export/import `.zip`), détection, corbeille,
+Fleasion, favoris, langues, tutoriel/onboarding, thèmes, et un test de bout
+en bout de l'interface (mode headless).
 
-## 8. Logs
+## 10. Logs
 
 Les journaux sont écrits dans `%APPDATA%\RivalsConfigManager\app.log` — utiles
 pour diagnostiquer un problème sans avoir accès à la console.
 
-## 9. Assets partagés et synchronisation
+## 11. Assets partagés et synchronisation
 
 Les images de la bibliothèque (armes, skins, charms, catégories…) ne sont
 **pas** compilées dans le `.exe`. Elles vivent dans le dépôt (`assets/`), sont
@@ -180,16 +241,17 @@ décrites par un **manifest versionné** (`manifest.json`) et sont téléchargé
   assets, indépendante de la version de l'application) + `assets` (clé →
   chemin/version/taille).
 - **Synchronisation** : bouton **Paramètres → Synchroniser les ressources**
-  (et synchronisation opportuniste au démarrage si un remote est configuré).
-  Seuls les assets nouveaux/modifiés sont téléchargés, en arrière-plan, sans
-  jamais bloquer l'interface.
-- **Hors ligne** : sans Internet (ou sans remote configuré), l'application
-  continue de fonctionner avec le cache local. Une carte sans image locale
-  retombe automatiquement sur l'image partagée du cache, sinon sur un
-  placeholder propre.
-- **Remote** : définir la variable d'environnement `RCM_ASSET_BASE_URL` (voir
-  `.env.example`) sur l'URL HTTPS racine du dépôt (ex. GitHub raw). Par
-  défaut, aucun remote n'est configuré.
+  (et synchronisation opportuniste au démarrage). Seuls les assets
+  nouveaux/modifiés sont téléchargés, en arrière-plan, sans jamais bloquer
+  l'interface.
+- **Remote** : par défaut, les assets sont servis depuis
+  `https://raw.githubusercontent.com/louisdacostagaudin000-ux/RivalsConfigManager/main`
+  (URL définie dans `app/assets/__init__.py`). Elle peut être surchargée (ou
+  désactivée) via la variable d'environnement `RCM_ASSET_BASE_URL` (voir
+  `.env.example`) — par exemple pour un miroir ou du hors-ligne.
+- **Hors ligne** : sans Internet, l'application continue de fonctionner avec
+  le cache local ; une carte sans image locale retombe sur l'image partagée
+  du cache, sinon sur un placeholder propre.
 
 ### Publier / mettre à jour les images
 
@@ -219,18 +281,27 @@ prochaine synchronisation, **sans** reconstruire le `.exe`.
 ├── RivalsConfigManager.spec     # build PyInstaller
 ├── README.md
 ├── app/
-│   ├── config.py                # paramètres (dossiers, sauvegarde auto)
+│   ├── config.py                # paramètres (dossiers, sauvegarde auto, langues)
 │   ├── scanner.py               # scan générique de la bibliothèque
 │   ├── json_validator.py        # validation JSON + résolution des meshes
 │   ├── backup_manager.py        # sauvegardes / restauration
 │   ├── file_manager.py          # activation (copie) d'une configuration
+│   ├── profiles.py              # profils + export/import .zip
+│   ├── batch_import.py          # analyse des lots d'import (multi-éléments, ZIP)
+│   ├── detection.py             # détection automatique catégorie/destination
+│   ├── validations.py           # validation manuelle des dépendances
+│   ├── onboarding.py            # état du premier lancement (langue, tutoriel)
+│   ├── restart.py               # redémarrage de l'application
 │   ├── assets/                  # manifest, cache local, synchro, sécurité
 │   └── launcher.py              # démarrage de l'application
 ├── ui/
-│   ├── theme.py                 # thème sombre (QSS)
+│   ├── theme.py                 # thèmes (QSS, clair/sombre)
 │   ├── main_window.py           # fenêtre principale, navigation, recherche
-│   └── views/                   # accueil, parcours, config, paramètres, bienvenue
+│   ├── card_specs.py            # spécifications des cartes
+│   └── views/                   # accueil, parcours, config, profils, paramètres,
+│                                #   import multiple, choix de destination, langue…
+│   └── widgets/                 # cartes, toast, overlay du tutoriel…
 ├── assets/                      # images partagées (reflète la bibliothèque) + icône
-├── tools/                       # sync_assets_from_library, make_icon, clés i18n
+├── tools/                       # sync_assets, make_icon, clés i18n, vérification
 └── tests/                       # tests pytest
 ```

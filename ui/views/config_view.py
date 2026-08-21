@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from app.config import admin_enabled
 from app.config_analysis import analyze_item
 from app.fleasion import ActivationOutcome, DeactivateOutcome
 from app.i18n import t
@@ -47,6 +48,10 @@ class ConfigView(QWidget):
     remove_obj_clicked = Signal()
     verify_clicked = Signal()   # « Vérifier » (v1.3.0)
     repair_clicked = Signal()   # « Réparer » (v1.3.0, only when relevant)
+    validate_clicked = Signal()   # « ✓ Valider » (v1.3.4) — l'utilisateur
+    #   confirme que la configuration fonctionne malgré les dépendances
+    #   signalées (contourne un faux positif, sans toucher au scanner).
+    clear_validation_clicked = Signal()  # « Réinitialiser » la validation
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -81,7 +86,41 @@ class ConfigView(QWidget):
         deps_box_layout.setSpacing(6)
         deps_box_layout.addWidget(self._deps_label)
         deps_box_layout.addWidget(self._deps_content)
+        # ---- Validation (v1.3.4) : petit contrôle discret, présent
+        # uniquement quand une dépendance est signalée manquante. Il permet
+        # de confirmer que la configuration fonctionne réellement malgré
+        # les dépendances signalées (faux positif) — sans modifier le
+        # scanner global ni les fichiers originaux.
+        self._validation_row = QWidget(self._deps_box)
+        validation_row_layout = QHBoxLayout(self._validation_row)
+        validation_row_layout.setContentsMargins(0, 0, 0, 0)
+        validation_row_layout.setSpacing(8)
+        self._validate_btn = QPushButton("", self._validation_row)
+        self._validate_btn.setObjectName("VerifyButton")
+        self._validate_btn.setCursor(Qt.PointingHandCursor)
+        self._validate_btn.setIcon(check_icon())
+        self._validate_btn.setIconSize(QSize(14, 14))
+        self._validate_btn.clicked.connect(self.validate_clicked)
+        self._validated_label = QLabel("", self._validation_row)
+        self._validated_label.setStyleSheet(
+            "border: none; background: transparent; font-size: 9pt;"
+            " font-weight: 700;"
+        )
+        self._reset_validation_btn = QPushButton("", self._validation_row)
+        self._reset_validation_btn.setObjectName("IconButton")
+        self._reset_validation_btn.setCursor(Qt.PointingHandCursor)
+        self._reset_validation_btn.clicked.connect(self.clear_validation_clicked)
+        validation_row_layout.addWidget(self._validate_btn)
+        validation_row_layout.addWidget(self._validated_label)
+        validation_row_layout.addWidget(self._reset_validation_btn)
+        validation_row_layout.addStretch(1)
+        deps_box_layout.addWidget(self._validation_row)
+        self._validation_row.hide()
         self._deps_box.hide()
+        #: Callable ConfigItem -> bool (validée par l'utilisateur ?),
+        #: fourni par la fenêtre principale.
+        self._validation_provider: object | None = None
+        self._item: ConfigItem | None = None
 
         files_scroll = QScrollArea(self)
         files_scroll.setWidgetResizable(True)
@@ -114,6 +153,12 @@ class ConfigView(QWidget):
         self._edit_image_btn = QPushButton("", self)
         self._edit_image_btn.setToolTip("")
         self._edit_image_btn.clicked.connect(self.edit_image_clicked)
+        # v1.3.4 : « Modifier l'image » est masqué de l'interface utilisateur
+        # normale (les images sont gérées par le système previews/assets).
+        # Le bouton ne réapparaît que dans une version admin — une seule
+        # porte centrale (:func:`admin_enabled`, ``ADMIN_MODE``), aucun
+        # « if admin » dispersé dans l'interface.
+        self._edit_image_btn.setVisible(admin_enabled())
 
         self._add_obj_btn = QPushButton("", self)
         self._add_obj_btn.setToolTip("")
@@ -204,6 +249,11 @@ class ConfigView(QWidget):
         layout.addLayout(body)
 
     # ------------------------------------------------------------------ #
+    def set_validation_provider(self, provider: object | None) -> None:
+        """Fournir le callable ConfigItem -> bool (validation utilisateur)."""
+        self._validation_provider = provider
+
+    # ------------------------------------------------------------------ #
     def set_config(self, item: ConfigItem) -> None:
         self._item = item
         self._name.setText(item.name)
@@ -238,25 +288,31 @@ class ConfigView(QWidget):
 
         OBJ and MP3 are shown as separate sections, each with one ✓/✗ line
         per referenced file, so a configuration needing both is identified
-        at a glance. A missing dependency never shows a false success."""
+        at a glance. A missing dependency never shows a false success —
+        unless the user has explicitly **validated** that the configuration
+        works despite the flagged dependencies (v1.3.4, discreet control)."""
         analysis = analyze_item(item)
+        validated = self._is_validated(item)
         self._deps_label.setText(t("deps.title"))
         if not analysis.valid:
             self._deps_content.setText(
                 f"<span style='color:{DANGER};'>{t('deps.invalid_json')}</span>"
             )
+            self._validation_row.hide()
             self._deps_box.show()
             return
         if not analysis.obj_required and not analysis.mp3_required:
             self._deps_content.setText(
                 f"<span style='color:{SUCCESS};'>{t('deps.none')}</span>"
             )
+            self._validation_row.hide()
             self._deps_box.show()
             return
 
         def section(header: str, files, present) -> list[str]:
-            """One dependency group: header + one ✓/✗ line per file + a
-            missing note when the group is incomplete."""
+            """One dependency group: header + one line per file. When the
+            configuration is user-validated, missing files are shown muted
+            (not blocking) instead of red; otherwise they are flagged."""
             lines = [f"<b>{header}</b>"]
             missing_in_group = False
             for name in files:
@@ -264,12 +320,18 @@ class ConfigView(QWidget):
                     lines.append(
                         f"<span style='color:{SUCCESS};'>{t('deps.found', name=name)}</span>"
                     )
+                elif validated:
+                    missing_in_group = True
+                    lines.append(
+                        f"<span style='color:{theme_color('text_dim')};'>"
+                        f"{t('deps.ignored', name=name)}</span>"
+                    )
                 else:
                     missing_in_group = True
                     lines.append(
                         f"<span style='color:{DANGER};'>{t('deps.missing', name=name)}</span>"
                     )
-            if missing_in_group:
+            if missing_in_group and not validated:
                 lines.append(
                     f"<span style='color:{WARNING};'>{t('deps.missing_note')}</span>"
                 )
@@ -285,11 +347,57 @@ class ConfigView(QWidget):
                 t("deps.mp3_header"), analysis.mp3_files, analysis.present_mp3_files
             )
         if analysis.incomplete:
-            lines.append(
-                f"<span style='color:{WARNING};'>{t('deps.explanation')}</span>"
-            )
+            if validated:
+                lines.append(
+                    f"<span style='color:{SUCCESS};'>{t('validation.validated_note')}</span>"
+                )
+            else:
+                lines.append(
+                    f"<span style='color:{WARNING};'>{t('deps.explanation')}</span>"
+                )
         self._deps_content.setText("<br>".join(lines))
+        self._apply_validation_row(analysis.incomplete, validated)
         self._deps_box.show()
+
+    # ------------------------------------------------------------------ #
+    def set_validated(self, validated: bool) -> None:
+        """Actualiser l'affichage après une validation / réinitialisation
+        (le bloc Dépendances est reconstruit avec le nouvel état)."""
+        if self._item is not None:
+            self._show_dependencies(self._item)
+
+    def _is_validated(self, item: ConfigItem | None) -> bool:
+        provider = self._validation_provider
+        if provider is None or item is None:
+            return False
+        try:
+            return bool(provider(item))
+        except Exception:  # noqa: BLE001 - un fournisseur défaillant n'est jamais bloquant
+            return False
+
+    def _apply_validation_row(self, incomplete: bool, validated: bool) -> None:
+        """Afficher le contrôle de validation uniquement quand des
+        dépendances sont signalées manquantes : « ✓ Valider » (discret) ou,
+        si déjà validée, l'état « ✓ Validée » + « Réinitialiser »."""
+        if not incomplete:
+            self._validation_row.hide()
+            return
+        self._validation_row.show()
+        if validated:
+            self._validate_btn.hide()
+            self._validated_label.show()
+            self._validated_label.setText(
+                f"<span style='color:{SUCCESS};'>{t('validation.validated')}</span>"
+            )
+            self._reset_validation_btn.setText(t("validation.reset"))
+            self._reset_validation_btn.setToolTip(t("validation.reset_tooltip"))
+            self._reset_validation_btn.show()
+        else:
+            self._validate_btn.setText(t("validation.validate"))
+            self._validate_btn.setToolTip(t("validation.validate_tooltip"))
+            self._validate_btn.show()
+            self._validated_label.hide()
+            self._reset_validation_btn.hide()
 
     # ------------------------------------------------------------------ #
     def retranslate(self) -> None:
@@ -312,6 +420,10 @@ class ConfigView(QWidget):
         self._sync_btn.setToolTip(t("config.verify_tooltip"))
         self._repair_btn.setText(t("repair.button"))
         self._repair_btn.setToolTip(t("repair.button_tooltip"))
+        self._validate_btn.setText(t("validation.validate"))
+        self._validate_btn.setToolTip(t("validation.validate_tooltip"))
+        self._reset_validation_btn.setText(t("validation.reset"))
+        self._reset_validation_btn.setToolTip(t("validation.reset_tooltip"))
         if hasattr(self, "_item") and self._item is not None:
             self._show_dependencies(self._item)
 
@@ -355,11 +467,14 @@ class ConfigView(QWidget):
     def show_repair(self, verification: ConfigVerification) -> None:
         """Afficher le bouton Réparer quand la configuration est incomplète
         et qu'une réparation est pertinente (JSON valide mais dépendance
-        manquante, etc.)."""
+        manquante, etc.). Une configuration **validée** par l'utilisateur
+        (v1.3.4) n'est pas proposée à la réparation : ses dépendances
+        signalées ne sont plus bloquantes."""
         relevant = (
             verification is not None
             and verification.deps is not None
             and bool(verification.deps.missing_obj_files or verification.deps.missing_mp3_files)
+            and not self._is_validated(self._item)
         )
         self._repair_btn.setVisible(relevant)
 
@@ -372,7 +487,18 @@ class ConfigView(QWidget):
         incomplète, quoi qu'il arrive par ailleurs.
         """
         self._verification = verification
-        if verification.valid:
+        # Une configuration validée par l'utilisateur (v1.3.4) n'affiche pas
+        # ses dépendances signalées comme bloquantes : si la seule cause
+        # d'incomplétude est une dépendance manquante, le résultat est
+        # affiché comme valide avec une mention discrète.
+        validated = self._is_validated(self._item)
+        validated_ok = (
+            validated
+            and verification.json_ok
+            and verification.files_ok
+            and verification.category_ok
+        )
+        if verification.valid or validated_ok:
             self._result_box.setStyleSheet(
                 f"QFrame#Card {{ background-color: rgba(52, 211, 153, 0.08);"
                 f" border: 1px solid {SUCCESS}; border-radius: 14px; }}"
@@ -382,6 +508,8 @@ class ConfigView(QWidget):
                 verification.deps.obj_required or verification.deps.mp3_required
             ):
                 lines.append(t("verify.deps_ok"))
+            if validated_ok and not verification.valid:
+                lines.append(t("validation.validated_note"))
             self._result_label.setText("\n".join(lines))
         else:
             self._result_box.setStyleSheet(

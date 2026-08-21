@@ -25,7 +25,7 @@ from PySide6.QtWidgets import (
 
 from app.i18n import t
 from app.profiles import Profile
-from ui.icons import check_icon, plus_icon, users_icon, wrench_icon
+from ui.icons import check_icon, plus_icon, users_icon
 from ui.theme import SUCCESS, WARNING
 
 
@@ -129,7 +129,6 @@ class ProfilesView(QWidget):
     create_clicked = Signal()
     import_clicked = Signal()
     capture_clicked = Signal()          # « Enregistrer comme profil » (v1.3.1)
-    import_into_clicked = Signal()      # « Importer dans un profil » (v1.3.1)
     apply_clicked = Signal(object)     # Profile
     edit_clicked = Signal(object)      # Profile
     delete_clicked = Signal(object)    # Profile
@@ -163,17 +162,11 @@ class ProfilesView(QWidget):
         self._capture_btn.setIconSize(QSize(16, 16))
         self._capture_btn.clicked.connect(self.capture_clicked)
 
-        self._import_into_btn = QPushButton("", self)
-        self._import_into_btn.setIcon(wrench_icon())
-        self._import_into_btn.setIconSize(QSize(16, 16))
-        self._import_into_btn.clicked.connect(self.import_into_clicked)
-
         toolbar = QHBoxLayout()
         toolbar.setSpacing(10)
         toolbar.addWidget(self._create_btn)
         toolbar.addWidget(self._capture_btn)
         toolbar.addWidget(self._import_btn)
-        toolbar.addWidget(self._import_into_btn)
         toolbar.addStretch(1)
 
         self._cards_host = QWidget(self)
@@ -213,8 +206,6 @@ class ProfilesView(QWidget):
         self._capture_btn.setToolTip(t("profiles.capture_tooltip"))
         self._import_btn.setText(t("profiles.import"))
         self._import_btn.setToolTip(t("profiles.import_tooltip"))
-        self._import_into_btn.setText(t("profiles.import_into"))
-        self._import_into_btn.setToolTip(t("profiles.import_into_tooltip"))
         self._empty.setText(t("profiles.no_profiles"))
         for card in self._cards:
             card._name.setText(card._profile.name)

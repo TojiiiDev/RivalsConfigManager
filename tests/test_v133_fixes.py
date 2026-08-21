@@ -331,10 +331,13 @@ def test_asset_sync_no_remote_is_safe(tmp_path: Path, qapp, monkeypatch) -> None
     window.show()
     qapp.processEvents()
 
-    # The settings page exposes the sync action.
+    # v1.3.5 : la synchronisation des ressources est un outil
+    # d'administration des assets — invisible dans la version normale
+    # (porte centrale ``ADMIN_MODE``), le mécanisme reste intact.
     assert window._settings._sync_assets_btn is not None
     assert "es ressources" in window._settings._sync_assets_btn.text() or \
         "resources" in window._settings._sync_assets_btn.text().lower()
+    assert not window._settings._sync_assets_btn.isVisible()
 
     # Triggering a sync with no remote configured is a clean no-op.
     window._sync_assets(silent=False)

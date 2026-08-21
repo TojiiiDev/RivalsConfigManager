@@ -48,6 +48,7 @@ from PySide6.QtWidgets import (
 #: so reordering a card can never trigger the import popup.
 CARD_DRAG_MIME = "application/x-rcm-card-order"
 
+from app.config import admin_enabled
 from app.i18n import t
 from ui.icons import close_icon, play_icon, star_icon
 from ui.theme import ACCENT, DANGER, SUCCESS, WARNING, theme_color
@@ -343,23 +344,40 @@ class Card(QFrame):
         self._anim.setEasingCurve(QEasingCurve.OutCubic)
 
     # ------------------------------------------------------------------ #
-    def resizeEvent(self, event) -> None:  # noqa: N802 (Qt naming)
-        """Position the overlays (status chip + favourite star) in the top
-        corners of the preview zone. They never participate in the layout,
-        so the title row keeps its full width."""
-        super().resizeEvent(event)
+    def _layout_overlays(self) -> None:
+        """Position the absolutely-positioned overlays (status chip top-left
+        + favourite star top-right) from the card's CURRENT size.
+
+        Always runs on resize AND on show — never gated on ``isVisible()``:
+        the grid sizes the cards before their page becomes the visible stack
+        widget, so a visibility-gated reposition would leave the overlays at
+        their stale pre-layout position (``show_favorite`` runs before the
+        card has any real width, so the star would sit outside the card).
+        Each card positions its own overlays from its own size — fully
+        independent of every other card (responsive fix)."""
+        if self.width() <= 0 or self.height() <= 0:
+            return
         margin = 12
-        if self._status_label.isVisible():
+        if not self._status_label.isHidden():
             self._status_label.adjustSize()
-            self._status_label.move(
-                margin + 4,
-                margin + 4,
-            )
-        if self._fav_btn.isVisible():
+            self._status_label.move(margin + 4, margin + 4)
+        if not self._fav_btn.isHidden():
             self._fav_btn.move(
                 self.width() - margin - FAV_SIZE - 4,
                 margin + 4,
             )
+
+    def resizeEvent(self, event) -> None:  # noqa: N802 (Qt naming)
+        """Re-layout the overlays on every size change, visible or not."""
+        super().resizeEvent(event)
+        self._layout_overlays()
+
+    def showEvent(self, event) -> None:  # noqa: N802 (Qt naming)
+        """Re-layout the overlays when the card becomes visible (covers the
+        case where the card was sized while its page was hidden: the overlays
+        are repositioned from the final size as soon as the card shows)."""
+        super().showEvent(event)
+        self._layout_overlays()
 
     # ------------------------------------------------------------------ #
     def sizeHint(self) -> QSize:
@@ -449,14 +467,21 @@ class Card(QFrame):
         drag.exec(Qt.MoveAction)
 
     def contextMenuEvent(self, event) -> None:  # noqa: N802 (Qt naming)
-        """Right-click: edit the card's image, or delete it (the item is
-        moved to the Windows Recycle Bin by the caller after confirmation)."""
+        """Right-click: delete the item (moved to the Recycle Bin by the
+        caller after confirmation).
+
+        « Modifier l'image » is hidden from the normal user interface
+        (v1.3.4 — images are handled by the previews/assets system); the
+        action reappears only in an admin build (:func:`admin_enabled`,
+        the single central gate — ``ADMIN_MODE``)."""
         menu = QMenu(self)
-        action = menu.addAction(t("card.edit_image"))
-        menu.addSeparator()
+        edit_action = None
+        if admin_enabled():
+            edit_action = menu.addAction(t("card.edit_image"))
+            menu.addSeparator()
         delete_action = menu.addAction(t("common.delete"))
         chosen = menu.exec(event.globalPos())
-        if chosen == action:
+        if edit_action is not None and chosen == edit_action:
             self.edit_image_requested.emit()
         elif chosen == delete_action:
             self.delete_requested.emit()
@@ -518,13 +543,12 @@ class Card(QFrame):
         self._apply_favorite_style()
 
     def show_favorite(self, enabled: bool) -> None:
-        """Afficher/masquer l'étoile (config cards only)."""
+        """Afficher/masquer l'étoile (config cards only). La position est
+        recalculée depuis la taille réelle de la carte par
+        :meth:`_layout_overlays` (jamais une position figée au moment de
+        l'ajout de la carte à la grille)."""
         self._fav_btn.setVisible(enabled)
-        if enabled:
-            self._fav_btn.move(
-                self.width() - 12 - FAV_SIZE - 4,
-                12 + 4,
-            )
+        self._layout_overlays()
 
     @property
     def favorite_button(self) -> QPushButton | None:
@@ -552,8 +576,7 @@ class Card(QFrame):
             f" border-left: 3px solid {color};"
         )
         self._status_label.show()
-        self._status_label.adjustSize()
-        self._status_label.move(12 + 4, 12 + 4)
+        self._layout_overlays()
 
     def set_status(self, status: str | None) -> None:
         """Actualiser la puce (après une activation, par exemple)."""

@@ -23,6 +23,15 @@ import pytest  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
+def _no_onboarding_auto(monkeypatch):
+    """L'onboarding (v1.3.8) est désactivé par défaut dans les tests :
+    construire une fenêtre ne doit jamais ouvrir un modal de choix de
+    langue ni l'overlay du tutoriel. Seuls les tests d'onboarding
+    l'activent explicitement (``RCM_ONBOARDING=1``)."""
+    monkeypatch.setenv("RCM_ONBOARDING", "0")
+
+
+@pytest.fixture(autouse=True)
 def _never_touch_real_fleasion(monkeypatch):
     """Sécurité de la suite : le VRAI processus Fleasion de la machine ne
     doit jamais être fermé/relancé pendant les tests. Par défaut Fleasion

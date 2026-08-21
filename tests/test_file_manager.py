@@ -5,6 +5,21 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def _french_messages():
+    """Messages applicatifs en français — le défaut 1.3.13 est l'anglais,
+    ces tests vérifient les textes français (restaurés après)."""
+    from app.i18n import current_language, set_language
+
+    previous = current_language()
+    set_language("fr")
+    yield
+    set_language(previous)
+
+
 from app.backup_manager import BackupManager
 from app.file_manager import FileManager
 from app.models import KIND_FILE, KIND_FOLDER, ConfigItem

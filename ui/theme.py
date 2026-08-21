@@ -260,21 +260,6 @@ def _qss(spec: ThemeSpec) -> str:
         color: {spec.danger};
     }}
 
-    /* ---------------- Drop zone (discrete, no text) ---------------- */
-    QWidget#DropZone {{
-        background-color: rgba(79, 140, 255, 0.05);
-        border: 1px solid rgba(79, 140, 255, 0.28);
-        border-radius: 12px;
-    }}
-    QWidget#DropZone[drag="true"] {{
-        background-color: rgba(79, 140, 255, 0.18);
-        border-color: {spec.accent};
-    }}
-    QLabel#DropZoneIcon {{
-        border: none;
-        background: transparent;
-    }}
-
     /* ---------------- Scrollbars ---------------- */
     QScrollArea {{
         border: none;

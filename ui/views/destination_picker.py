@@ -88,6 +88,9 @@ class DestinationPickerDialog(QDialog):
         self._category: str | None = None
         self._weapon: str | None = None
         self._config: ConfigItem | None = None
+        #: True when the user chose « directement dans <catégorie> » (the
+        #: category itself is the destination — no weapon selected).
+        self._direct_in = False
 
         # ---- Header ---------------------------------------------------- #
         self._step_label = QLabel(t("destination.step_category"), self)
@@ -266,14 +269,17 @@ class DestinationPickerDialog(QDialog):
         self._weapon_list.setCurrentRow(0)
         self._new_weapon.clear()
         self._config = None
+        self._direct_in = False
 
     def _on_weapon_clicked(self, item: QListWidgetItem) -> None:
         self._weapon = item.data(Qt.UserRole)
+        self._direct_in = self._weapon is None  # « directement dans la catégorie »
         self._config = None
 
     def _on_new_weapon_changed(self, text: str) -> None:
         if text.strip():
             self._weapon = text.strip()
+            self._direct_in = False
             self._config = None
             self._weapon_list.clearSelection()
 
@@ -377,13 +383,22 @@ class DestinationPickerDialog(QDialog):
             # clears the list selection, but Qt keeps a "current item" —
             # only a *selected* item counts as choosing an existing weapon.
             typed = self._new_weapon.text().strip()
-            if not typed:
-                current = self._weapon_list.currentItem()
-                if current is not None and current.data(Qt.UserRole) is not None:
-                    self._weapon = current.data(Qt.UserRole)
-            if not self._weapon:
+            if typed:
+                self._weapon = typed
+                self._direct_in = False
+            else:
+                current_item = self._weapon_list.currentItem()
+                if current_item is not None:
+                    data = current_item.data(Qt.UserRole)
+                    self._weapon = data
+                    self._direct_in = data is None
+            if self._weapon is None and not self._direct_in:
                 return
-            if self._has_configs():
+            # IMPORT : le conteneur choisi (catégorie / arme) EST la
+            # destination — on n'oblige JAMAIS à sélectionner un élément
+            # déjà présent. Seul le mode profil (pick_config) descend au
+            # niveau des configurations.
+            if self._pick_config and self._weapon and self._has_configs():
                 self._show_step(2)
             else:
                 self._show_step(3)
@@ -396,8 +411,27 @@ class DestinationPickerDialog(QDialog):
 
     def _go_back(self) -> None:
         current = self._stack.currentIndex()
-        if current > 0:
+        if current == 3:
+            # Retour vers l'arme (import) ou vers les configurations
+            # (mode profil, si une configuration avait été choisie).
+            if self._pick_config and self._config is not None:
+                self._show_step(2)
+            else:
+                self._show_step(1)
+        elif current > 0:
             self._show_step(current - 1)
+
+    def keyPressEvent(self, event) -> None:  # noqa: N802 (Qt naming)
+        """Entrée / validation confirme immédiatement la destination (plus
+        aucune étape superflue) : avance d'une page, ou accepte sur la
+        page de confirmation."""
+        if event.key() in (Qt.Key_Return, Qt.Key_Enter):
+            if self._stack.currentIndex() == 3:
+                self.accept()
+            else:
+                self._go_next()
+            return
+        super().keyPressEvent(event)
 
     # ------------------------------------------------------------------ #
     # Result

@@ -99,13 +99,21 @@
         "backup_item": "{label}  —  {count} file{s}",
         "restore_selection": "Restore selection",
         "theme": "Theme",
-        "shortcuts_title": "Keyboard shortcuts"
+        "shortcuts_title": "Keyboard shortcuts",
+        "restart": "Restart the application",
+        "restart_tooltip": "Closes and restarts the application cleanly (like a page refresh). Nothing is lost: favorites, profiles, language, theme and paths are saved.",
+        "review_tutorial": "Review the tutorial",
+        "review_tutorial_tooltip": "Restart the app discovery tutorial"
     },
     "home": {
         "subtitle": "Choose a category to browse your configurations.",
         "empty": "The library folder is empty or cannot be found.",
         "clear_configs": "Clear Configs",
-        "clear_configs_tooltip": "Move configurations from Fleasion's active folder to the Windows Recycle Bin (never a permanent deletion)."
+        "clear_configs_tooltip": "Move configurations from Fleasion's active folder to the Windows Recycle Bin (never a permanent deletion).",
+        "drop_zone_title": "Drag and drop your files here to add them",
+        "drop_zone_subtitle": "You can also click to browse your files",
+        "browse_files": "Add files",
+        "browse_filter": "Configurations (*.zip *.json);;All files (*)"
     },
     "browse": {
         "empty_folder": "No items in this folder.",
@@ -163,7 +171,8 @@
         "missing": "✗ {name}",
         "missing_note": "Required file not found",
         "explanation": "This configuration may not work correctly without this file.",
-        "invalid_json": "✗ Invalid JSON — dependencies unknown"
+        "invalid_json": "✗ Invalid JSON — dependencies unknown",
+        "ignored": "✓ {name} (validated — not blocking)"
     },
     "trash": {
         "title": "Trash",
@@ -297,7 +306,11 @@
         "profile_imported": "Profile « {name} » imported",
         "theme_applied": "Theme applied",
         "item_not_found": "Item not found",
-        "no_active_configs": "No active configuration in Fleasion to capture."
+        "no_active_configs": "No active configuration in Fleasion to capture.",
+        "validated": "✓ Configuration validated — flagged dependencies are no longer blocking.",
+        "validation_reset": "Validation reset.",
+        "fleasion_folder_inaccessible": "Fleasion active folder is inaccessible.",
+        "restart_failed": "Could not restart the application."
     },
     "confirm": {
         "delete_title": "Delete",
@@ -516,8 +529,8 @@
         "delete": "Delete",
         "apply": "Apply",
         "export": "Export",
-        "import": "Import",
-        "import_tooltip": "Import a profile (.rcmprofile)",
+        "import": "Import a profile",
+        "import_tooltip": "Import a profile (.zip)",
         "no_profiles": "No profiles yet — create the first one.",
         "no_description": "No description",
         "count_one": "1 configuration",
@@ -542,11 +555,16 @@
         "import_into": "Import into a profile",
         "import_into_tooltip": "Import a configuration (file / ZIP) then create a profile with it",
         "capture_title": "Save as profile",
-        "capture_note_saved": "Current configuration captured — {count} configuration{s} saved",
         "import_into_dialog": "Import a configuration into a profile",
         "import_into_filter": "Configurations (*.zip *.json);;All files (*)",
         "browse": "Browse the library…",
-        "browse_tooltip": "Choose a configuration through the tree"
+        "browse_tooltip": "Choose a configuration through the tree",
+        "detected_note": "Configurations detected in Fleasion: {count}",
+        "import_filter": "RCM Profile (*.zip *.rcmprofile);;All files (*)",
+        "conflict_title": "Profile already exists",
+        "conflict_text": "A profile « {name} » already exists. What do you want to do?",
+        "conflict_replace": "Replace",
+        "conflict_copy": "Create a copy"
     },
     "theme": {
         "dark": "Dark",
@@ -606,5 +624,84 @@
         "offline": "Could not reach the asset repository (offline?). Using the local cache.",
         "invalid_manifest": "Invalid or unsupported asset manifest.",
         "no_remote": "No remote asset repository configured."
+    },
+    "validation": {
+        "validate": "✓ Validate",
+        "validate_tooltip": "Confirm that this configuration works despite the flagged dependencies",
+        "title": "Configuration validation",
+        "question": "Does this configuration work correctly despite the currently flagged dependencies?",
+        "yes": "✓ Yes, it works",
+        "no": "✕ No",
+        "validated": "✓ Validated",
+        "validated_note": "Flagged dependencies are ignored for this configuration (user validation).",
+        "reset": "Reset",
+        "reset_tooltip": "Reset the validation (flagged dependencies become blocking again)"
+    },
+    "onboarding": {
+        "language": {
+            "title": "Choose your language",
+            "body": "The app is available in several languages. You can change it at any time in Settings."
+        },
+        "continue": "Continue",
+        "step_add": {
+            "title": "Add your files",
+            "body": "Drag and drop your files here to add them. You can also click to browse your files."
+        },
+        "step_nav": {
+            "title": "Navigation",
+            "body": "Use these buttons to go back or forward in your navigation."
+        },
+        "step_trash": {
+            "title": "Trash",
+            "body": "Find your deleted configurations here and manage your trash."
+        },
+        "step_profiles": {
+            "title": "Profiles",
+            "body": "Quickly create and apply your configuration profiles."
+        },
+        "step_home": {
+            "title": "Home",
+            "body": "Come back here to find all your categories and configurations."
+        },
+        "step_favorites": {
+            "title": "Favorites",
+            "body": "Find all your favorite configurations here."
+        },
+        "step_search": {
+            "title": "Search",
+            "body": "Quickly search for a configuration, a weapon, a skin, a charm or anything else."
+        },
+        "step_settings": {
+            "title": "Settings",
+            "body": "Find your preferences, language, theme and application options here."
+        },
+        "done": {
+            "title": "You're all set!",
+            "body": "You now know the main features of RivalsConfigManager."
+        },
+        "next": "Next",
+        "prev": "Previous",
+        "finish": "Finish",
+        "got_it": "Got it",
+        "progress": "{current} / {total}"
+    },
+    "batch_import": {
+        "title": "Import multiple items",
+        "count": "{count} item{s} detected",
+        "to_choose": "ℹ️ Destination to choose",
+        "detected": "✓ Detected: {label}",
+        "manual": "Destination chosen manually",
+        "import_button": "Import the {count} item{s}",
+        "imported": "{count} item{s} imported",
+        "failed": "Some items failed: {names}",
+        "destination_tooltip": "Real destination inside this category (empty = the category itself)",
+        "choose_category": "Choose a category",
+        "choose_destination": "Choose a destination",
+        "choose_weapon": "Choose a weapon",
+        "no_sublevel": "No sub-level — the category is the destination",
+        "new_destination": "+ New destination",
+        "new_destination_title": "New destination",
+        "new_destination_prompt": "Name of the new destination:",
+        "new_destination_tooltip": "Create a new destination in this category (explicit action)"
     }
 }

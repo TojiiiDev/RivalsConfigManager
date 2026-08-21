@@ -56,22 +56,26 @@ def chevron_right_icon() -> QIcon:
 
 
 def gear_icon() -> QIcon:
-    """A simple cog: a ring of teeth around a rounded square center."""
+    """Engrenage moderne (UI/UX phase) : 12 dents arrondies autour d'un
+    anneau, centre évidé — plus lisible que l'ancienne version."""
     pm, p, pen = _canvas()
-    p.drawEllipse(QRectF(13, 13, 18, 18))
-    # Teeth (short radial strokes).
-    for i in range(8):
-        a = math.radians(i * 45)
-        r1, r2 = 18.0, 22.5
-        cx = 22 + math.cos(a) * (r1 + r2) / 2
-        cy = 22 + math.sin(a) * (r1 + r2) / 2
-        dx = math.cos(a) * (r2 - r1) / 2
-        dy = math.sin(a) * (r2 - r1) / 2
-        p.drawLine(QPointF(cx - dx, cy - dy), QPointF(cx + dx, cy + dy))
-    # Center hole.
+    cx, cy = 22.0, 22.0
+    r_ring, r_teeth_outer = 7.4, 11.2
+    # Dents : segments épais à cap ronds, à partir du bord externe de
+    # l'anneau.
+    for i in range(12):
+        a = math.radians(i * 30)
+        dx, dy = math.cos(a), math.sin(a)
+        p.drawLine(
+            QPointF(cx + dx * (r_ring + 1.2), cy + dy * (r_ring + 1.2)),
+            QPointF(cx + dx * r_teeth_outer, cy + dy * r_teeth_outer),
+        )
+    # Anneau central.
+    p.drawEllipse(QRectF(cx - r_ring, cy - r_ring, r_ring * 2, r_ring * 2))
+    # Centre évidé.
     p.setBrush(QColor(STROKE))
     p.setPen(Qt.NoPen)
-    p.drawEllipse(QRectF(18.5, 18.5, 7, 7))
+    p.drawEllipse(QRectF(cx - 2.1, cy - 2.1, 4.2, 4.2))
     return _finish(p, pm)
 
 
@@ -149,6 +153,21 @@ def wrench_icon() -> QIcon:
     p.drawArc(QRectF(13, 13, 14, 14), 40 * 16, 260 * 16)
     p.drawLine(QPointF(12, 19), QPointF(12, 25))
     p.drawLine(QPointF(28, 19), QPointF(28, 25))
+    return _finish(p, pm)
+
+
+def refresh_icon() -> QIcon:
+    """Flèche circulaire (recharger) — utilisée par le bouton
+    « Recharger l'application » (v1.3.5)."""
+    pm, p, pen = _canvas()
+    # Cercle ouvert en haut à droite.
+    p.drawArc(QRectF(13, 13, 18, 18), 30 * 16, 300 * 16)
+    # Pointe de flèche à l'extrémité de l'arc.
+    path = QPainterPath()
+    path.moveTo(29, 9)
+    path.lineTo(32, 15)
+    path.lineTo(26, 17)
+    p.drawPath(path)
     return _finish(p, pm)
 
 

@@ -25,6 +25,7 @@ def _configure(fake_appdata: Path, library: Path, fleasion_dir: Path) -> AppSett
     settings = AppSettings()
     settings.fleasion_dir = fleasion_dir
     settings.library_dir = library
+    settings.language = "fr"  # UI française explicitement (défaut 1.3.13 = en)
     settings.save()
     return settings
 
@@ -302,6 +303,7 @@ def test_hot_activation_option_off_never_restarts(
             "library_dir": str(library),
             "backup_before_overwrite": True,
             "hot_activation_enabled": False,
+            "language": "fr",
         },
         (appdata / "RivalsConfigManager" / "settings.json").open("w", encoding="utf-8"),
     )
@@ -1965,11 +1967,12 @@ def test_categories_canonical_order_in_browse(library: Path, fleasion_dir: Path,
     assert set(titles) == {"Primary", "Secondary", "Melee"}
 
 
-def test_import_button_removed_and_drop_zone_minimalist(library: Path, fleasion_dir: Path, tmp_path: Path, monkeypatch, qapp) -> None:
-    """No import button anymore; the drop zone is a small icon-only square
-    (no text), accepts drags, and routes dropped files to the import flow."""
+def test_import_button_removed_and_drop_zone_explicit(library: Path, fleasion_dir: Path, tmp_path: Path, monkeypatch, qapp) -> None:
+    """No import button; the drop zone is a LARGE, self-explanatory zone
+    (icon + title + subtitle), accepts drags (drag-over state set) and
+    routes dropped files to the same import flow as before."""
     from PySide6.QtCore import QMimeData, QPoint, Qt, QUrl
-    from PySide6.QtGui import QDragEnterEvent
+    from PySide6.QtGui import QDragEnterEvent, QDragLeaveEvent
     from PySide6.QtWidgets import QLabel
 
     from ui.main_window import MainWindow
@@ -1988,27 +1991,34 @@ def test_import_button_removed_and_drop_zone_minimalist(library: Path, fleasion_
 
     zone = window._home._drop_zone
     assert zone.acceptDrops()
-    # Small and discreet: a ~44 px square, not a full-width banner.
-    assert zone.width() <= 48 and zone.height() <= 48
-    # No explanatory text: the only child label carries the vector plus icon.
+    # Large and explicit: a tall, full-width banner, NOT a 44px square.
+    assert zone.height() >= 70
+    assert zone.width() >= 400
+    # The explanatory texts are present (self-explanatory drop zone).
     texts = [lbl.text() for lbl in zone.findChildren(QLabel)]
-    assert texts == [""]  # icône vectorielle, plus aucun caractère texte
+    assert any("Glissez-déposez" in txt for txt in texts)
+    assert any("cliquer pour parcourir" in txt for txt in texts)
     labels = zone.findChildren(QLabel)
     assert labels and not labels[0].pixmap().isNull()
 
-    # A file dragged over the zone is accepted (no popup during the drag).
+    # A file dragged over the zone is accepted and sets the drag-over state.
     mime = QMimeData()
     mime.setUrls([QUrl.fromLocalFile(str(tmp_path / "mod.zip"))])
     drag = QDragEnterEvent(QPoint(5, 5), Qt.CopyAction, mime, Qt.LeftButton, Qt.NoModifier)
     zone.dragEnterEvent(drag)
     assert drag.isAccepted()
+    assert zone.property("drag") is True
+    # Leaving the zone restores the normal state.
+    leave = QDragLeaveEvent()
+    zone.dragLeaveEvent(leave)
+    assert zone.property("drag") is False
 
-    # Drop routes every local file to the import flow.
+    # Drop routes every local file to the import flow (batch pipeline).
     calls = []
-    window._start_mod_import = lambda p: calls.append(p)  # type: ignore[method-assign]
+    window._start_batch_import = lambda p: calls.append(p)  # type: ignore[method-assign]
     zone.files_dropped.emit([Path("some_mod.zip"), Path("other.obj")])
     qapp.processEvents()
-    assert calls == [Path("some_mod.zip"), Path("other.obj")]
+    assert calls == [[Path("some_mod.zip"), Path("other.obj")]]
 
 
 def test_import_mod_flow(library: Path, fleasion_dir: Path, tmp_path: Path, monkeypatch, qapp) -> None:
@@ -2561,7 +2571,7 @@ def test_drop_anywhere_in_window_routes_to_import(library: Path, fleasion_dir: P
     assert window.acceptDrops()
 
     calls = []
-    window._start_mod_import = lambda p: calls.append(p)  # type: ignore[method-assign]
+    window._start_batch_import = lambda p: calls.append(p)  # type: ignore[method-assign]
 
     # A drop with one local file and one remote URL: only the local one
     # reaches the import flow.
@@ -2575,7 +2585,7 @@ def test_drop_anywhere_in_window_routes_to_import(library: Path, fleasion_dir: P
     drop = QDropEvent(QPointF(10, 10), Qt.CopyAction, mime, Qt.LeftButton, Qt.NoModifier)
     window.dropEvent(drop)
     qapp.processEvents()
-    assert calls == [tmp_path / "mod.zip"]
+    assert calls == [[tmp_path / "mod.zip"]]
 
     # A drag of a local file is accepted (visual feedback possible).
     mime2 = QMimeData()
@@ -2590,7 +2600,7 @@ def test_drop_anywhere_in_window_routes_to_import(library: Path, fleasion_dir: P
     drop3 = QDropEvent(QPointF(0, 0), Qt.CopyAction, mime3, Qt.LeftButton, Qt.NoModifier)
     window.dropEvent(drop3)
     qapp.processEvents()
-    assert calls == [tmp_path / "mod.zip"]  # unchanged
+    assert calls == [[tmp_path / "mod.zip"]]  # unchanged
 
 
 def test_import_popup_category_and_weapon_navigation(library: Path, fleasion_dir: Path, tmp_path: Path, monkeypatch, qapp) -> None:
@@ -3337,6 +3347,11 @@ def test_window_resizes_without_overlap(library: Path, fleasion_dir: Path, tmp_p
         for row in rows:
             previous_right = 0
             for btn in row:
+                # « Modifier l'image » est masqué de l'interface utilisateur
+                # normale (v1.3.4, admin only) : seuls les boutons visibles
+                # participent au contrôle de chevauchement.
+                if not btn.isVisible():
+                    continue
                 assert btn.x() >= previous_right
                 assert btn.x() + btn.width() <= btn.parentWidget().width()
                 previous_right = btn.x() + btn.width()

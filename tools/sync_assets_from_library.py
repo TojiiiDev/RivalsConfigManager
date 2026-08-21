@@ -2,8 +2,10 @@
 
 This is the **publisher** side of the shared-asset system. It reads the local
 Fleasion library (the ``.image.json`` / ``image.json`` sidecars next to the
-configurations) plus the developer's image cache, copies every image into the
-repository ``assets/`` tree, and writes a versioned ``manifest.json``.
+configurations, plus Wallpaper-Engine-style ``preview.*`` files directly
+inside configuration folders — v1.3.4) and the developer's image cache,
+copies every image into the repository ``assets/`` tree, and writes a
+versioned ``manifest.json``.
 
 The result is what gets pushed to GitHub so every user's app can fetch the
 images without receiving a new ``.exe``.
@@ -106,6 +108,34 @@ def chain_key(rel_parts: tuple[str, ...], sidecar: Path, name: str) -> str:
     return "/".join(parts)
 
 
+#: Wallpaper-Engine-style preview names (v1.3.4): a ``preview.jpg`` directly
+#: inside a configuration folder is its official image. These are published
+#: alongside the sidecar images so a fresh machine can fetch them.
+PREVIEW_STEMS = {
+    "preview", "thumbnail", "thumb", "cover", "image", "icon",
+    "apercu", "aperçu", "screenshot",
+}
+PREVIEW_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp"}
+
+
+def _collect_folder_previews(library: Path) -> list[tuple[Path, tuple[str, ...]]]:
+    """``preview.*`` files found directly inside library folders.
+
+    A folder that already carries an ``image.json`` sidecar is skipped (the
+    sidecar is the deliberate image; the preview file would only duplicate
+    the same chain key)."""
+    found: list[tuple[Path, tuple[str, ...]]] = []
+    for p in sorted(library.rglob("*")):
+        if (
+            p.is_file()
+            and p.suffix.lower() in PREVIEW_EXTS
+            and p.stem.lower() in PREVIEW_STEMS
+            and not (p.parent / "image.json").is_file()
+        ):
+            found.append((p, p.relative_to(library).parts))
+    return found
+
+
 def _bump_assets_version(old: str | None) -> str:
     today = date.today().strftime("%Y.%m.%d")
     if old and old.startswith(today + "."):
@@ -134,6 +164,61 @@ def _collect_sidecars(library: Path) -> list[tuple[Path, tuple[str, ...]]]:
         if p.is_file() and (p.name == "image.json" or p.name.endswith(".image.json")):
             found.append((p, p.relative_to(library).parts))
     return found
+
+
+def _build_entry(
+    key: str,
+    source: Path,
+    old_assets: dict,
+    assets_dir: Path,
+    seen_keys: dict[str, str],
+    errors: list[str],
+) -> dict | None:
+    """Build the manifest entry for one image file ``source``, copy it into
+    ``assets_dir`` and record its metadata. Returns ``None`` (and appends to
+    ``errors``) when the image is invalid or the key is a duplicate."""
+    try:
+        data = source.read_bytes()
+    except OSError as exc:
+        errors.append(f"{source.name} : lecture impossible ({exc})")
+        return None
+    ext = detect_ext(data)
+    if ext is None:
+        errors.append(f"{source.name} : image invalide ({source})")
+        return None
+    if key in seen_keys:
+        errors.append(f"{key} : clé dupliquée ({source} vs {seen_keys[key]})")
+        return None
+    seen_keys[key] = str(source)
+
+    rel_target = f"assets/{key}.{ext}"
+    target = assets_dir / f"{key}.{ext}"
+
+    digest = hashlib.sha256(data).hexdigest()
+    old_entry = old_assets.get(key) if isinstance(old_assets, dict) else None
+    old_digest = old_entry.get("sha256") if isinstance(old_entry, dict) else None
+    old_version = old_entry.get("version") if isinstance(old_entry, dict) else None
+    version = (
+        old_version + 1
+        if isinstance(old_version, int) and old_digest != digest
+        else (old_version if isinstance(old_version, int) else 1)
+    )
+    changed = old_digest != digest or old_entry.get("path") != rel_target
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if not target.is_file() or target.read_bytes() != data:
+        target.write_bytes(data)
+        changed = True
+
+    return {
+        "entry": {
+            "path": rel_target,
+            "version": version,
+            "size": len(data),
+            "sha256": digest,
+        },
+        "changed": changed,
+    }
 
 
 def main() -> int:
@@ -190,6 +275,8 @@ def main() -> int:
     top_counts: Counter[str] = Counter()
     changed = 0
 
+    # 1. Sidecar images (``.image.json`` / ``image.json``) — the historical
+    #    source, published from the developer's image cache.
     for sidecar, rel_parts in _collect_sidecars(library):
         try:
             meta = json.loads(sidecar.read_text(encoding="utf-8"))
@@ -206,12 +293,6 @@ def main() -> int:
         if not src.is_file():
             errors.append(f"{sidecar.name} : image absente du cache ({local_path})")
             continue
-        data = src.read_bytes()
-
-        ext = detect_ext(data)
-        if ext is None:
-            errors.append(f"{sidecar.name} : image invalide ({local_path})")
-            continue
 
         name = _item_name(sidecar)
         if not name.strip():
@@ -222,36 +303,36 @@ def main() -> int:
         if not key:
             errors.append(f"{sidecar} : clé vide")
             continue
-        if key in seen_keys:
-            errors.append(f"{key} : clé dupliquée ({sidecar} vs {seen_keys[key]})")
-            continue
-        seen_keys[key] = str(sidecar)
 
-        rel_target = f"assets/{key}.{ext}"
-        target = assets_dir / f"{key}.{ext}"
-
-        digest = hashlib.sha256(data).hexdigest()
-        old_entry = old_assets.get(key) if isinstance(old_assets, dict) else None
-        old_digest = old_entry.get("sha256") if isinstance(old_entry, dict) else None
-        old_version = old_entry.get("version") if isinstance(old_entry, dict) else None
-        version = (
-            old_version + 1
-            if isinstance(old_version, int) and old_digest != digest
-            else (old_version if isinstance(old_version, int) else 1)
+        result = _build_entry(
+            key, src, old_assets, assets_dir, seen_keys, errors,
         )
-        if old_digest != digest or old_entry.get("path") != rel_target:
+        if result is None:
+            continue
+        entries[key] = result["entry"]
+        if result["changed"]:
             changed += 1
+        top_counts[key.split("/")[0]] += 1
 
-        target.parent.mkdir(parents=True, exist_ok=True)
-        if not target.is_file() or target.read_bytes() != data:
-            target.write_bytes(data)
-
-        entries[key] = {
-            "path": rel_target,
-            "version": version,
-            "size": len(data),
-            "sha256": digest,
-        }
+    # 2. Wallpaper-Engine-style previews (v1.3.4): ``preview.jpg`` directly
+    #    inside a configuration folder is its official image. Published with
+    #    the folder's chain key (the folder path itself — the preview file
+    #    name is dropped) so the application resolves it like any other
+    #    shared asset (fresh machine, offline cache, placeholder fallback).
+    for preview, rel_parts in _collect_folder_previews(library):
+        folders = rel_parts[:-1]  # drop the preview file name itself
+        key = "/".join(slug(c) for c in folders if slug(c))
+        if not key:
+            errors.append(f"{preview} : clé vide")
+            continue
+        result = _build_entry(
+            key, preview, old_assets, assets_dir, seen_keys, errors,
+        )
+        if result is None:
+            continue
+        entries[key] = result["entry"]
+        if result["changed"]:
+            changed += 1
         top_counts[key.split("/")[0]] += 1
 
     if errors:

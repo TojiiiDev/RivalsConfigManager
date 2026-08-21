@@ -7,10 +7,12 @@ keeps working when the library moves and can be exported without leaking
 any personal data.
 
 Storage: one JSON file per profile inside
-``%APPDATA%/RivalsConfigManager/profiles/``. Export writes the same JSON
-with the ``.rcmprofile`` extension (only the logical references + profile
-metadata — no settings, no absolute paths, no logs, no caches); import
-reads it back and validates it.
+``%APPDATA%/RivalsConfigManager/profiles/``. Export writes a dedicated
+``.zip`` archive containing a single ``profile.json`` manifest (the
+logical references + profile metadata — no settings, no absolute paths,
+no logs, no caches); import reads a ``.zip`` back (and still accepts a
+legacy plain ``.rcmprofile`` JSON) and validates it before storing
+anything.
 
 Applying a profile is done by the UI (:meth:`ProfileManager.apply` is kept
 logic-only here): resolve each entry, warn about missing configurations,
@@ -24,14 +26,21 @@ from __future__ import annotations
 import json
 import re
 import time
+import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from .config import data_dir
 from .i18n import t
 
-#: Extension of exported profiles (1.3.0).
-PROFILE_EXTENSION = ".rcmprofile"
+#: Extension of exported profiles (1.3.11) — a dedicated ``.zip`` archive.
+PROFILE_EXTENSION = ".zip"
+
+#: Legacy extension of profiles exported before 1.3.11 (still imported).
+LEGACY_PROFILE_EXTENSION = ".rcmprofile"
+
+#: Name of the manifest inside the exported archive.
+PROFILE_MANIFEST = "profile.json"
 
 #: Current export format version.
 PROFILE_FORMAT_VERSION = 1
@@ -187,10 +196,12 @@ class ProfileManager:
 
     # ------------------------------------------------------------------ #
     def export_profile(self, name: str, destination: Path) -> Path:
-        """Export a profile to ``destination`` (a ``.rcmprofile`` file).
+        """Export a profile to ``destination`` (a ``.zip`` archive).
 
-        Only the profile's own data is written — logical references, never
-        absolute paths, settings or any personal file.
+        The archive contains a single ``profile.json`` manifest with only
+        the profile's own data — logical references, never absolute paths,
+        settings or any personal file. Portable: the ZIP can be shared and
+        imported anywhere.
         """
         profile = self.get(name)
         if profile is None:
@@ -199,29 +210,72 @@ class ProfileManager:
         if destination.suffix.lower() != PROFILE_EXTENSION:
             destination = destination.with_suffix(PROFILE_EXTENSION)
         destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_text(
-            json.dumps(profile.to_dict(), indent=2), encoding="utf-8"
-        )
+        manifest = json.dumps(profile.to_dict(), indent=2, ensure_ascii=False)
+        with zipfile.ZipFile(destination, "w", zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr(PROFILE_MANIFEST, manifest.encode("utf-8"))
         return destination
 
-    def import_profile(self, source: Path) -> Profile:
-        """Import a ``.rcmprofile`` file into the profiles directory.
+    def read_file(self, source: Path) -> Profile:
+        """Read and validate a profile file **without storing anything**.
 
-        The file is validated first; on any problem a :class:`ProfileError`
-        is raised and nothing is stored. An imported profile with an
-        existing name is stored under a suffixed name (never overwritten).
+        Accepts the current ``.zip`` format (``profile.json`` manifest) and
+        the legacy plain ``.rcmprofile`` JSON. On any problem (not a zip,
+        missing/invalid manifest, unknown format version, empty name) a
+        :class:`ProfileError` is raised — a non-profile file is never
+        silently accepted.
         """
         source = Path(source)
         try:
-            data = json.loads(source.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError, UnicodeDecodeError) as exc:
+            if zipfile.is_zipfile(source):
+                with zipfile.ZipFile(source) as zf:
+                    data = json.loads(
+                        zf.read(PROFILE_MANIFEST).decode("utf-8")
+                    )
+            else:
+                data = json.loads(source.read_text(encoding="utf-8"))
+        except (
+            OSError,
+            json.JSONDecodeError,
+            UnicodeDecodeError,
+            KeyError,
+            zipfile.BadZipFile,
+        ) as exc:
             raise ProfileError(t("profiles.import_invalid", path=source)) from exc
+        if not isinstance(data, dict):
+            raise ProfileError(t("profiles.import_invalid", path=source))
+        raw_format = data.get("format")
+        if raw_format is not None and (
+            not isinstance(raw_format, int) or raw_format > PROFILE_FORMAT_VERSION
+        ):
+            raise ProfileError(t("profiles.import_invalid", path=source))
         profile = Profile.from_dict(data)
         if not profile.name:
             raise ProfileError(t("profiles.import_invalid", path=source))
+        return profile
+
+    def import_profile(self, source: Path, conflict: str = "copy") -> Profile:
+        """Import a profile file into the profiles directory.
+
+        The file is validated first (:meth:`read_file`); on any problem a
+        :class:`ProfileError` is raised and nothing is stored. When a
+        profile with the same name already exists, ``conflict`` decides:
+
+        * ``"copy"`` (default) — stored under a suffixed name, the
+          existing profile is never touched;
+        * ``"replace"`` — the existing profile is overwritten (explicit
+          user choice, never silent).
+        """
+        profile = self.read_file(source)
         if self.exists(profile.name):
-            profile.name = self._next_free_name(profile.name)
-        profile.created = profile.updated = time.time()
+            if conflict == "replace":
+                profile.updated = time.time()
+                self._delete_file(profile.name)
+            else:
+                profile.name = self._next_free_name(profile.name)
+                profile.created = time.time()
+                profile.updated = time.time()
+        else:
+            profile.created = profile.updated = time.time()
         self._write_file(profile)
         return profile
 

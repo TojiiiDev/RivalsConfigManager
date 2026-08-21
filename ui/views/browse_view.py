@@ -27,6 +27,7 @@ from app.search import (
     STATUS_MISSING,
     STATUS_SYNC,
 )
+from ui.card_specs import config_spec, folder_spec
 from ui.widgets.grid import CardGrid, CardSpec
 
 EMPTY_FOLDER_TEXT = "Aucun élément dans ce dossier."
@@ -183,17 +184,7 @@ class BrowseView(QWidget):
         for sub in sort_nodes(node.subdirs):
             count = sub.total_items()
             label = t("unit.element_one") if count == 1 else t("unit.element_many")
-            specs.append(
-                CardSpec(
-                    title=sub.name,
-                    subtitle=f"{count} {label}",
-                    preview=sub.preview,
-                    on_click=lambda n=sub: self.folder_clicked.emit(n),
-                    edit_target=sub,
-                    delete_target=sub,
-                    key=str(sub.path),
-                )
-            )
+            specs.append(self._folder_spec(sub))
         for config in sort_configs(node.configs):
             specs.append(self._config_spec(config))
         self._grid.set_cards(self._apply_stored_order(specs))
@@ -265,59 +256,31 @@ class BrowseView(QWidget):
 
     # ------------------------------------------------------------------ #
     def _folder_spec(self, node: Node, library_root: Node | None = None) -> CardSpec:
-        """Card of a folder result (hierarchical search): the subtitle shows
-        its real place in the tree; clicking opens the folder's page."""
-        subtitle = ""
-        if library_root is not None:
-            try:
-                rel = node.path.relative_to(library_root.path)
-                subtitle = str(rel.parent) if str(rel.parent) != "." else ""
-            except ValueError:
-                pass
-        count = node.total_items()
-        label = t("unit.element_one") if count == 1 else t("unit.element_many")
-        if not subtitle:
-            subtitle = f"{count} {label}"
-        return CardSpec(
-            title=node.name,
-            subtitle=subtitle,
-            preview=node.preview,
+        """Card of a folder (category, weapon, sub-folder or hierarchical
+        search result): the subtitle shows its real place in the tree;
+        clicking opens the folder's page. Built by the central builder
+        (ui.card_specs) so it carries the **same favourite star as every
+        other card** — same position, same interaction, same persistence
+        (v1.3.4/1.3.5, jamais dupliqué)."""
+        return folder_spec(
+            node,
             on_click=lambda n=node: self.folder_clicked.emit(n),
-            edit_target=node,
-            delete_target=node,
-            key=str(node.path),
+            library_root=library_root,
+            favorites_provider=self._favorites_provider,
         )
 
     # ------------------------------------------------------------------ #
     def _config_spec(self, config: ConfigItem, library_root: Node | None = None) -> CardSpec:
-        subtitle = t("unit.configuration")
-        if config.is_folder:
-            n = len(config.files)
-            suffix = "s" if n != 1 else ""
-            subtitle = t("browse.config_files_subtitle", count=n, s=suffix)
-        if library_root is not None:
-            try:
-                rel = config.path.relative_to(library_root.path)
-                subtitle = str(rel.parent) if str(rel.parent) != "." else ""
-            except ValueError:
-                pass
-        provider = self._activation_provider
-        fav_provider = self._favorites_provider
-        status_provider = self._status_provider
-        key = str(config.path)
-        return CardSpec(
-            title=config.name,
-            subtitle=subtitle,
-            preview=config.preview,
+        """Card of a configuration — built by the central builder so the
+        favourite star, the activation button and the status chip are the
+        exact same components as everywhere else."""
+        return config_spec(
+            config,
             on_click=lambda c=config: self.config_clicked.emit(c),
-            edit_target=config,
-            delete_target=config,
-            key=key,
-            activation_target=config if provider is not None else None,
-            activation_state=provider(config) if provider is not None else None,
-            is_favorite=bool(fav_provider(key)) if fav_provider is not None else False,
-            favorite_target=config if fav_provider is not None else None,
-            status=status_provider(config) if status_provider is not None else None,
+            library_root=library_root,
+            activation_provider=self._activation_provider,
+            favorites_provider=self._favorites_provider,
+            status_provider=self._status_provider,
         )
 
     # ------------------------------------------------------------------ #

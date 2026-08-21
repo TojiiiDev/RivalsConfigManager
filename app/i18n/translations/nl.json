@@ -99,13 +99,21 @@
         "backup_item": "{label}  —  {count} bestand(en)",
         "restore_selection": "Selectie herstellen",
         "theme": "Theme",
-        "shortcuts_title": "Keyboard shortcuts"
+        "shortcuts_title": "Keyboard shortcuts",
+        "restart": "Applicatie opnieuw starten",
+        "restart_tooltip": "Sluit en start de applicatie netjes opnieuw (zoals een paginavernieuwing). Er gaat niets verloren: favorieten, profielen, taal, thema en paden worden opgeslagen.",
+        "review_tutorial": "Tutorial bekijken",
+        "review_tutorial_tooltip": "Start de app-ontdekkingstutorial opnieuw"
     },
     "home": {
         "subtitle": "Kies een categorie om door uw configuraties te bladeren.",
         "empty": "De bibliotheekmap is leeg of niet gevonden.",
         "clear_configs": "Clear Configs",
-        "clear_configs_tooltip": "Configuraties van de actieve Fleasion-map naar de Windows-prullenbak verplaatsen (nooit definitief verwijderen)."
+        "clear_configs_tooltip": "Configuraties van de actieve Fleasion-map naar de Windows-prullenbak verplaatsen (nooit definitief verwijderen).",
+        "drop_zone_title": "Sleep je bestanden hierheen om ze toe te voegen",
+        "drop_zone_subtitle": "Je kunt ook klikken om je bestanden te bladeren",
+        "browse_files": "Bestanden toevoegen",
+        "browse_filter": "Configuraties (*.zip *.json);;Alle bestanden (*)"
     },
     "browse": {
         "empty_folder": "Geen items in deze map.",
@@ -163,7 +171,8 @@
         "missing": "✗ {name}",
         "missing_note": "Vereist bestand niet gevonden",
         "explanation": "Deze configuratie werkt mogelijk niet correct zonder dit bestand.",
-        "invalid_json": "✗ Ongeldige JSON — afhankelijkheden onbekend"
+        "invalid_json": "✗ Ongeldige JSON — afhankelijkheden onbekend",
+        "ignored": "✓ {name} (gevalideerd — niet blokkerend)"
     },
     "trash": {
         "title": "Prullenbak",
@@ -297,7 +306,11 @@
         "profile_imported": "Profile « {name} » imported",
         "theme_applied": "Theme applied",
         "item_not_found": "Item not found",
-        "no_active_configs": "Geen actieve configuratie in Fleasion om vast te leggen."
+        "no_active_configs": "Geen actieve configuratie in Fleasion om vast te leggen.",
+        "validated": "✓ Configuratie gevalideerd — gemarkeerde afhankelijkheden blokkeren niet meer.",
+        "validation_reset": "Validatie gereset.",
+        "fleasion_folder_inaccessible": "Actieve Fleasion-map is niet toegankelijk.",
+        "restart_failed": "Kan de applicatie niet opnieuw starten."
     },
     "confirm": {
         "delete_title": "Verwijderen",
@@ -516,8 +529,8 @@
         "delete": "Delete",
         "apply": "Apply",
         "export": "Export",
-        "import": "Import",
-        "import_tooltip": "Import a profile (.rcmprofile)",
+        "import": "Profiel importeren",
+        "import_tooltip": "Een profiel importeren (.zip)",
         "no_profiles": "No profiles yet — create the first one.",
         "no_description": "No description",
         "count_one": "1 configuration",
@@ -542,11 +555,16 @@
         "import_into": "Importeren in een profiel",
         "import_into_tooltip": "Een configuratie (bestand/ZIP) importeren en er een profiel mee maken",
         "capture_title": "Opslaan als profiel",
-        "capture_note_saved": "Huidige configuratie vastgelegd — {count} configuratie{s} opgeslagen",
         "import_into_dialog": "Een configuratie in een profiel importeren",
         "import_into_filter": "Configuraties (*.zip *.json);;Alle bestanden (*)",
         "browse": "Bibliotheek verkennen…",
-        "browse_tooltip": "Kies een configuratie via de boom"
+        "browse_tooltip": "Kies een configuratie via de boom",
+        "detected_note": "Configuraties gedetecteerd in Fleasion: {count}",
+        "import_filter": "RCM-profiel (*.zip *.rcmprofile);;Alle bestanden (*)",
+        "conflict_title": "Profiel bestaat al",
+        "conflict_text": "Er bestaat al een profiel « {name} ». Wat wil je doen?",
+        "conflict_replace": "Vervangen",
+        "conflict_copy": "Kopie maken"
     },
     "theme": {
         "dark": "Dark",
@@ -606,5 +624,84 @@
         "offline": "Kan de bronrepository niet bereiken (offline?). Lokale cache wordt gebruikt.",
         "invalid_manifest": "Ongeldig of niet-ondersteund bronmanifest.",
         "no_remote": "Geen externe bronrepository geconfigureerd."
+    },
+    "validation": {
+        "validate": "✓ Valideren",
+        "validate_tooltip": "Bevestig dat deze configuratie werkt ondanks de gemarkeerde afhankelijkheden",
+        "title": "Configuratievalidatie",
+        "question": "Werkt deze configuratie correct ondanks de momenteel gemarkeerde afhankelijkheden?",
+        "yes": "✓ Ja, hij werkt",
+        "no": "✕ Nee",
+        "validated": "✓ Gevalideerd",
+        "validated_note": "Gemarkeerde afhankelijkheden worden genegeerd voor deze configuratie (gebruikersvalidatie).",
+        "reset": "Resetten",
+        "reset_tooltip": "Validatie resetten (gemarkeerde afhankelijkheden worden weer blokkerend)"
+    },
+    "onboarding": {
+        "language": {
+            "title": "Kies je taal",
+            "body": "De app is beschikbaar in meerdere talen. Je kunt deze op elk moment wijzigen in Instellingen."
+        },
+        "continue": "Doorgaan",
+        "step_add": {
+            "title": "Voeg je bestanden toe",
+            "body": "Sleep je bestanden hierheen om ze toe te voegen. Je kunt ook klikken om door je bestanden te bladeren."
+        },
+        "step_nav": {
+            "title": "Navigatie",
+            "body": "Gebruik deze knoppen om terug of vooruit te gaan in je navigatie."
+        },
+        "step_trash": {
+            "title": "Prullenbak",
+            "body": "Vind hier je verwijderde configuraties en beheer je prullenbak."
+        },
+        "step_profiles": {
+            "title": "Profielen",
+            "body": "Maak en pas snel je configuratieprofielen toe."
+        },
+        "step_home": {
+            "title": "Home",
+            "body": "Kom hier terug om al je categorieën en configuraties te vinden."
+        },
+        "step_favorites": {
+            "title": "Favorieten",
+            "body": "Vind hier al je favoriete configuraties."
+        },
+        "step_search": {
+            "title": "Zoeken",
+            "body": "Zoek snel een configuratie, wapen, skin, charm of een ander element."
+        },
+        "step_settings": {
+            "title": "Instellingen",
+            "body": "Vind hier je voorkeuren, taal, thema en app-opties."
+        },
+        "done": {
+            "title": "Je bent klaar!",
+            "body": "Je kent nu de belangrijkste functies van RivalsConfigManager."
+        },
+        "next": "Volgende",
+        "prev": "Vorige",
+        "finish": "Afronden",
+        "got_it": "Begrepen",
+        "progress": "{current} / {total}"
+    },
+    "batch_import": {
+        "title": "Meerdere elementen importeren",
+        "count": "{count} element(en) gedetecteerd",
+        "to_choose": "ℹ️ Bestemming kiezen",
+        "detected": "✓ Gedetecteerd: {label}",
+        "manual": "Bestemming handmatig gekozen",
+        "import_button": "De {count} element(en) importeren",
+        "imported": "{count} element(en) geïmporteerd",
+        "failed": "Sommige elementen mislukt: {names}",
+        "destination_tooltip": "Echt doel binnen deze categorie (leeg = de categorie zelf)",
+        "choose_category": "Kies een categorie",
+        "choose_destination": "Kies een bestemming",
+        "choose_weapon": "Kies een wapen",
+        "no_sublevel": "Geen subniveau — de categorie is de bestemming",
+        "new_destination": "+ Nieuwe bestemming",
+        "new_destination_title": "Nieuwe bestemming",
+        "new_destination_prompt": "Naam van de nieuwe bestemming:",
+        "new_destination_tooltip": "Een nieuwe bestemming in deze categorie maken (expliciete actie)"
     }
 }

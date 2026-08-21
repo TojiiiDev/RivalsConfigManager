@@ -43,9 +43,17 @@ def qapp():
 
 
 # ---------------------------------------------------------------------- #
-# 1. Langue française
+# 1. Langue par défaut (1.3.13 : aucune langue choisie → English)
 # ---------------------------------------------------------------------- #
-def test_french_is_default_and_translates() -> None:
+def test_english_is_default_and_translates() -> None:
+    assert current_language() == "en"
+    assert t("settings.title") == "Settings"
+    assert t("nav.home") == "Home"
+    assert t("trash.title") == "Trash"
+
+
+def test_french_still_translates_when_selected() -> None:
+    set_language("fr")
     assert current_language() == "fr"
     assert t("settings.title") == "Paramètres"
     assert t("nav.home") == "Accueil"
@@ -67,6 +75,7 @@ def test_english_translations() -> None:
 # 3. Changement de langue
 # ---------------------------------------------------------------------- #
 def test_language_switch_changes_all_texts() -> None:
+    set_language("fr")
     assert t("config.activate") == "ACTIVER"
     set_language("en")
     assert t("config.activate") == "ACTIVATE"
@@ -96,21 +105,22 @@ def test_language_persists_in_settings(tmp_path: Path, monkeypatch) -> None:
     assert payload["language"] == "en"
 
 
-def test_language_missing_key_defaults_to_french(tmp_path: Path, monkeypatch) -> None:
+def test_language_missing_key_defaults_to_english(tmp_path: Path, monkeypatch) -> None:
     appdata = tmp_path / "AppData"
     appdata.mkdir(parents=True)
     monkeypatch.setenv("APPDATA", str(appdata))
 
     from app.config import AppSettings, settings_file
 
-    # Un settings.json sans la clé « language » : jamais d'erreur, défaut fr.
+    # Un settings.json sans la clé « language » (nouvelle installation) :
+    # jamais d'erreur, défaut English depuis 1.3.13.
     settings_file().parent.mkdir(parents=True, exist_ok=True)
     settings_file().write_text(
         json.dumps({"fleasion_dir": None, "library_dir": None}),
         encoding="utf-8",
     )
     settings = AppSettings.load()
-    assert settings.language == "fr"
+    assert settings.language == "en"
 
 
 def test_language_unknown_value_falls_back(tmp_path: Path, monkeypatch) -> None:
@@ -126,7 +136,7 @@ def test_language_unknown_value_falls_back(tmp_path: Path, monkeypatch) -> None:
         encoding="utf-8",
     )
     settings = AppSettings.load()
-    assert settings.language == "fr"
+    assert settings.language == "en"
 
 
 # ---------------------------------------------------------------------- #
@@ -134,9 +144,9 @@ def test_language_unknown_value_falls_back(tmp_path: Path, monkeypatch) -> None:
 # ---------------------------------------------------------------------- #
 def test_unknown_language_falls_back_to_default() -> None:
     set_language("xx")
-    assert current_language() == "fr"
-    # La langue inconnue ne casse jamais : les textes restent en français.
-    assert t("settings.title") == "Paramètres"
+    assert current_language() == "en"
+    # La langue inconnue ne casse jamais : les textes restent en anglais.
+    assert t("settings.title") == "Settings"
 
 
 def test_missing_key_falls_back_to_default_language() -> None:
@@ -347,11 +357,11 @@ def test_secondary_language_switch_round_trip() -> None:
     assert t("settings.title") == "Paramètres"
 
 
-def test_secondary_language_missing_key_falls_back_to_french(
+def test_secondary_language_missing_key_falls_back_to_default_language(
     monkeypatch, tmp_path: Path
 ) -> None:
-    """Une traduction manquante dans une langue secondaire retombe sur le
-    français (jamais de crash)."""
+    """Une traduction manquante dans une langue secondaire retombe sur la
+    langue par défaut (english depuis 1.3.13) — jamais de crash."""
     import json
 
     from app.i18n import manager as manager_module
@@ -372,8 +382,8 @@ def test_secondary_language_missing_key_falls_back_to_french(
     monkeypatch.setattr(manager_module, "_translations_dir", lambda: fake)
     fresh = I18nManager()
     fresh.set_language("es")
-    # La clé manquante en espagnol retombe sur le français.
-    assert fresh.t("settings.title") == "Paramètres"
+    # La clé manquante en espagnol retombe sur la langue par défaut (en).
+    assert fresh.t("settings.title") == "Settings"
     # Les clés présentes en espagnol sont traduites normalement.
     assert fresh.t("nav.home") == "Inicio"
 
@@ -403,7 +413,7 @@ def test_frozen_mode_finds_translations_in_meipass(tmp_path: Path, monkeypatch) 
         fresh = manager_module.I18nManager()
         fresh.set_language("es")
         assert fresh.t("settings.title") == "Ajustes"
-        # Langue absente du bundle : fallback fr (clé absente -> la clé).
+        # Langue absente du bundle : fallback en (clé absente -> la clé).
         fresh.set_language("en")
         assert fresh.t("settings.title") == "settings.title"
     finally:

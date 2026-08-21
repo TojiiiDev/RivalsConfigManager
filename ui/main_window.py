@@ -36,14 +36,28 @@ from app.categories import (
 )
 from app.config import AppSettings, backups_dir, image_cache_dir, normalize_path, obj_cache_dir, trash_dir
 from app.file_manager import FileManager
-from app.fleasion import FleasionManager
+from app.fleasion import FleasionManager, config_name as fleasion_config_name
+from app.batch_import import analyze_batch, cleanup_batch
 from app.i18n import set_language as _set_language
 from app.i18n import t
 from app.image_manager import ImageManager
 from app.image_metadata import invalidate_shared_assets
 from app.models import ConfigItem, Node
-from app.mod_import import ModImportError, analyze_source, cleanup_staging, install_mod
+from app.mod_import import (
+    MODE_KEEP_BOTH,
+    ModImportError,
+    analyze_source,
+    build_plan,
+    cleanup_staging,
+    install_mod,
+)
 from app.obj_manager import ObjError, ObjManager
+from app.onboarding import (
+    mark_tutorial_completed,
+    needs_language_choice,
+    needs_tutorial,
+    onboarding_enabled,
+)
 from app.profiles import (
     Profile,
     ProfileEntry,
@@ -53,6 +67,7 @@ from app.profiles import (
 )
 from app.recents import RecentEntry, RecentsStore
 from app.repair import apply_repair, build_repair_plan
+from app.restart import relaunch
 from app.scanner import find_config, find_node, scan_library, validate_library_root
 from app.search import (
     FAVORITES_EXCLUDED,
@@ -63,6 +78,7 @@ from app.search import (
 )
 from app.sync import SyncEngine, walk_configs
 from app.trash import Trash, TrashEntry, TrashError
+from app.validations import ValidationStore
 from app.verify import verify_item
 from ui.views.add_weapon_dialog import AddWeaponDialog
 from ui.widgets.card import (
@@ -81,8 +97,11 @@ from ui.views.config_view import (
 )
 from ui.views.favorites_view import FavoritesView
 from ui.views.home_view import HomeView
+from ui.views.batch_import_dialog import BatchImportDialog
 from ui.views.image_dialog import ImageDialog
 from ui.views.import_dialog import ImportDialog
+from ui.views.language_dialog import LanguageDialog
+from ui.widgets.onboarding_overlay import OnboardingOverlay
 from ui.views.profile_dialog import ProfileDialog
 from ui.views.profiles_view import ProfilesView
 from ui.views.search_view import SearchView
@@ -201,6 +220,17 @@ class MainWindow(QMainWindow):
         self.fleasion = FleasionManager(self.settings.fleasion_dir, self.backup_manager)
         self.recents = RecentsStore()
         self.profiles = ProfileManager()
+        #: User validations (v1.3.4): a configuration the user confirmed to
+        #: work despite its flagged dependencies — stored locally, keyed by
+        #: a stable identity, never touching the scanner or the files.
+        self.validations = ValidationStore()
+        #: Onboarding (v1.3.8): first-launch language choice + interactive
+        #: tutorial — an independent UI layer above the application. The
+        #: dialog factory is injectable so tests can drive the flow without
+        #: a blocking modal.
+        self._language_dialog_factory = LanguageDialog
+        self._tutorial_pending = False
+        self._onboarding_overlay: OnboardingOverlay | None = None
         self.root_node: Node | None = None
         self._current_item: ConfigItem | None = None
 
@@ -237,6 +267,11 @@ class MainWindow(QMainWindow):
         # background after the window is up and never blocks startup.
         if asset_base_url():
             QTimer.singleShot(2000, self._auto_sync_assets)
+
+        # Onboarding au premier lancement (v1.3.8) : choix de langue puis
+        # tutoriel interactif — déclenché une fois la fenêtre affichée, et
+        # désactivable en test (``RCM_ONBOARDING=0``).
+        QTimer.singleShot(0, self._maybe_start_onboarding)
 
     # ------------------------------------------------------------------ #
     # UI construction
@@ -280,13 +315,14 @@ class MainWindow(QMainWindow):
         self._search_page_btn.setFixedWidth(44)
         self._search_page_btn.clicked.connect(lambda: self.go((PAGE_SEARCH, None)))
 
-        #: Profiles page (v1.3.0).
-        self._profiles_btn = QPushButton(self)
+        #: Profiles page (v1.3.0) — libellé explicite « Profils » : un
+        #: nouvel utilisateur doit comprendre immédiatement ce que fait le
+        #: bouton (icône + texte, même style que les autres boutons).
+        self._profiles_btn = QPushButton(t("profiles.title"), self)
         self._profiles_btn.setObjectName("IconButton")
         self._profiles_btn.setIcon(users_icon())
-        self._profiles_btn.setIconSize(QSize(22, 22))
+        self._profiles_btn.setIconSize(QSize(20, 20))
         self._profiles_btn.setToolTip(t("profiles.title"))
-        self._profiles_btn.setFixedWidth(44)
         self._profiles_btn.clicked.connect(lambda: self.go((PAGE_PROFILES, None)))
 
         #: Favorites page (v1.3.2) — a virtual folder of the favourite
@@ -306,8 +342,11 @@ class MainWindow(QMainWindow):
         self._search.setPlaceholderText(t("search.placeholder"))
         self._search.setClearButtonEnabled(True)
         # Largeur rétrécissable : à fenêtre étroite le champ cède de la
-        # place au lieu de chevaucher le bouton « Ajouter une arme ».
-        self._search.setMinimumWidth(180)
+        # place au lieu de chevaucher le bouton « Ajouter une arme ». La
+        # recherche complète vit sur sa propre page (v1.3.0), le champ de la
+        # barre reste une entrée rapide — 130 px suffisent (v1.3.6, le
+        # bouton « Profils » libellé occupe un peu plus de place).
+        self._search.setMinimumWidth(130)
         self._search.setMaximumWidth(420)
         self._search.setFixedHeight(34)
         self._search_timer = QTimer(self)
@@ -341,14 +380,27 @@ class MainWindow(QMainWindow):
         top_layout = QHBoxLayout(top_bar)
         top_layout.setContentsMargins(16, 10, 20, 10)
         top_layout.setSpacing(12)
+        # ---- Barre supérieure : trois zones (Phase 2) ------------------ #
+        #   Navigation gauche : ← → Corbeille Profils
+        #   Centre           : ACCUEIL (titre, stretch 1 → absorbe l'espace)
+        #   Outils/droite    : Favoris [Recherche] 🔍 ⚙️
+        # Seuls l'ordre et la position changent — les boutons, leurs icônes,
+        # leurs styles et leurs comportements restent strictement identiques.
         top_layout.addWidget(self._back_btn)
         top_layout.addWidget(self._forward_btn)
         top_layout.addWidget(self._trash_btn)
-        top_layout.addWidget(self._search_page_btn)
         top_layout.addWidget(self._profiles_btn)
+        #: Accueil : deux stretchs égaux l'entourent pour qu'il reste
+        #: réellement centré (quand la place le permet) ; à fenêtre étroite
+        #: ils cèdent de la place en premier, jamais de chevauchement.
+        top_layout.addStretch(1)
+        top_layout.addWidget(self._top_title)
+        top_layout.addStretch(1)
         top_layout.addWidget(self._favorites_btn)
-        top_layout.addWidget(self._top_title, 1)
+        # La loupe est placée juste après le champ : elle appartient
+        # visuellement au bloc de recherche.
         top_layout.addWidget(self._search)
+        top_layout.addWidget(self._search_page_btn)
         top_layout.addWidget(self._add_weapon_btn)
         top_layout.addWidget(self._add_weapon_spacer)
         top_layout.addWidget(self._settings_btn)
@@ -395,9 +447,9 @@ class MainWindow(QMainWindow):
         self._home.config_clicked.connect(
             lambda item: self.go((PAGE_CONFIG, item))
         )
-        self._home.settings_requested.connect(lambda: self.go(STATE_SETTINGS))
         self._home.edit_image_requested.connect(self._edit_image)
         self._home.files_dropped.connect(self._import_dropped)
+        self._home.browse_clicked.connect(self._browse_mod_files)
         self._home.delete_requested.connect(self._delete_card)
         self._home.clear_configs_clicked.connect(self._clear_configs)
         self._home.order_changed.connect(self._save_card_order)
@@ -436,6 +488,9 @@ class MainWindow(QMainWindow):
         self._config.remove_obj_clicked.connect(self._remove_current_obj)
         self._config.verify_clicked.connect(self._verify_current)
         self._config.repair_clicked.connect(self._repair_current)
+        self._config.validate_clicked.connect(self._validate_current)
+        self._config.clear_validation_clicked.connect(self._clear_validation_current)
+        self._config.set_validation_provider(self._is_config_validated)
 
         self._trash_view.restore_clicked.connect(self._restore_trash_entry)
         self._trash_view.destroy_clicked.connect(self._destroy_trash_entry)
@@ -453,6 +508,8 @@ class MainWindow(QMainWindow):
         self._settings.hot_activation_toggled.connect(self._set_hot_activation_flag)
         self._settings.language_changed.connect(self._set_language)
         self._settings.theme_changed.connect(self._set_theme)
+        self._settings.restart_clicked.connect(self._restart_app)
+        self._settings.review_tutorial_requested.connect(self._review_tutorial)
 
         self._welcome.continue_clicked.connect(self._finish_welcome)
         self._search.textChanged.connect(self._on_search_text)
@@ -474,7 +531,6 @@ class MainWindow(QMainWindow):
         # ---- Profiles (v1.3.0) ----------------------------------------- #
         self._profiles_view.create_clicked.connect(self._create_profile)
         self._profiles_view.capture_clicked.connect(self._save_current_as_profile)
-        self._profiles_view.import_into_clicked.connect(self._import_into_profile)
         self._profiles_view.import_clicked.connect(self._import_profile)
         self._profiles_view.apply_clicked.connect(self._apply_profile)
         self._profiles_view.edit_clicked.connect(self._edit_profile)
@@ -484,6 +540,9 @@ class MainWindow(QMainWindow):
         # ---- Favorites page (v1.3.2) ---------------------------------- #
         self._favorites_view.config_clicked.connect(
             lambda item: self.go((PAGE_CONFIG, item))
+        )
+        self._favorites_view.folder_clicked.connect(
+            lambda node: self.go((PAGE_BROWSE, node))
         )
         self._favorites_view.edit_image_requested.connect(self._edit_image)
         self._favorites_view.delete_requested.connect(self._delete_card)
@@ -521,6 +580,9 @@ class MainWindow(QMainWindow):
         if page_name == PAGE_HOME:
             self._home.set_library(self.root_node)
             self._top_title.setText(t("nav.home"))
+            # Tutoriel en attente : il démarre dès que l'accueil est visible
+            # (après configuration des dossiers le cas échéant).
+            self._maybe_start_tutorial()
         elif page_name == PAGE_BROWSE:
             if isinstance(payload, SearchState):
                 self._show_search_state(payload)
@@ -564,6 +626,10 @@ class MainWindow(QMainWindow):
         # une catégorie d'armes (Primary / Secondary / Melee / Utility), et
         # jamais dans Accueil, Recherche, catégories générales ou Profils.
         self._set_add_weapon_context()
+        # Tutoriel actif : recalcul immédiat de la cible après tout rendu de
+        # page / changement de layout (la géométrie n'est jamais en retard).
+        if self._onboarding_overlay is not None:
+            self._onboarding_overlay.refresh()
         self._fade_in()
 
     def _set_add_weapon_context(self) -> None:
@@ -949,7 +1015,10 @@ class MainWindow(QMainWindow):
 
         * active dans Fleasion → « Active » ;
         * JSON invalide → « Erreur » ;
-        * dépendance OBJ/MP3 manquante → « Incomplète » ;
+        * dépendance OBJ/MP3 manquante → « Incomplète » — SAUF si
+          l'utilisateur a validé la configuration (v1.3.4) : une validation
+          neutralise le faux positif pour cette configuration uniquement,
+          sans modifier le scanner global ;
         * sinon → « Prête ».
 
         L'analyse JSON est mise en cache (chemin + mtime + taille) ;
@@ -963,6 +1032,8 @@ class MainWindow(QMainWindow):
         if not analysis.valid:
             return STATUS_ERROR
         if analysis.incomplete:
+            if self.validations.is_validated(str(item.path)):
+                return STATUS_READY
             return STATUS_INCOMPLETE
         return STATUS_READY
 
@@ -1508,16 +1579,115 @@ class MainWindow(QMainWindow):
     # Mod import
     # ------------------------------------------------------------------ #
     def _import_dropped(self, paths: list[Path]) -> None:
-        """Fichiers déposés dans la zone de drop : chacun passe par le flux
-        d'import normal (analyse → prévisualisation → confirmation)."""
-        if self.settings.library_dir is None:
-            self._toast.show_message(
-                t("toast.no_library"),
-                KIND_WARNING,
-            )
+        """Fichiers déposés dans la zone de drop (ou choisis dans le
+        navigateur) : TOUS passent par le même pipeline d'import — clic et
+        glisser-déposer ne font jamais deux systèmes différents. Un seul
+        élément garde l'interface actuelle ; plusieurs ouvrent le lot
+        « Importer plusieurs éléments » (tri individuel, une seule
+        validation)."""
+        self._start_batch_import([Path(p) for p in paths])
+
+    def _start_batch_import(self, paths: list[Path]) -> None:
+        """Pipeline d'import unique (v1.3.11) : analyse du lot (les ZIP à
+        plusieurs mods sont découpés), puis
+
+        * 1 élément → le flux individuel existant (analyse → popup →
+          installation), inchangé ;
+        * plusieurs éléments → le gestionnaire de lot : chaque élément est
+          trié individuellement, puis une seule validation installe tout.
+        """
+        if not paths:
             return
-        for path in paths:
-            self._start_mod_import(path)
+        if self.settings.library_dir is None:
+            self._toast.show_message(t("toast.no_library"), KIND_WARNING)
+            return
+        items, errors = analyze_batch(paths, self.settings.library_dir)
+        for error in errors:
+            self._toast.show_message(f"✘ {error}", KIND_ERROR, duration_ms=4500)
+        if not items:
+            return
+        try:
+            if len(items) == 1:
+                self._run_single_import_item(items[0])
+                return
+            dialog = BatchImportDialog(
+                items, self.settings.library_dir, parent=self
+            )
+            if dialog.exec() != QDialog.Accepted:
+                return
+            self._install_batch(dialog.result_items())
+        finally:
+            cleanup_batch(items)
+
+    def _run_single_import_item(self, item) -> None:
+        """Un seul élément : la prévisualisation individuelle existante
+        (catégorie → arme → nom → doublons) puis l'installation —
+        exactement le flux d'avant, aucun comportement perdu."""
+        try:
+            dialog = ImportDialog(
+                item.analysis,
+                self.settings.library_dir,
+                self,
+                library_node=self.root_node,
+            )
+            if dialog.exec() != QDialog.Accepted:
+                return
+            self._apply_install_plan(dialog.build_plan())
+        finally:
+            cleanup_staging(item.analysis)
+
+    def _install_batch(self, items) -> None:
+        """Installe chaque élément du lot à sa destination choisie, sans
+        confirmation élément par élément. Une erreur sur un élément ne fait
+        jamais échouer le reste : le résultat (réussites / échecs) est
+        affiché clairement."""
+        succeeded: list[str] = []
+        failed: list[str] = []
+        for item in items:
+            try:
+                plan = build_plan(
+                    item.name,
+                    item.category,
+                    item.weapon,
+                    item.analysis,
+                    self.settings.library_dir,
+                    mode=MODE_KEEP_BOTH,
+                )
+                install_mod(plan, self.backup_manager)
+                succeeded.append(item.name)
+            except ModImportError as exc:
+                failed.append(f"{item.name} ({exc})")
+        self.refresh_library(show_error=False)
+        if succeeded:
+            self._toast.show_message(
+                t("batch_import.imported",
+                  count=len(succeeded),
+                  s="" if len(succeeded) == 1 else "s"),
+                KIND_SUCCESS,
+                duration_ms=4000,
+            )
+        if failed:
+            self._toast.show_message(
+                t("batch_import.failed", names=", ".join(failed)),
+                KIND_ERROR,
+                duration_ms=6000,
+            )
+
+    def _browse_mod_files(self) -> None:
+        """Clic sur la zone de dépôt : choisir des fichiers dans le navigateur
+        puis les passer par le flux d'import normal — EXACTEMENT le même
+        chemin que le glisser-déposer (jamais un second système d'import)."""
+        if self.settings.library_dir is None:
+            self._toast.show_message(t("toast.no_library"), KIND_WARNING)
+            return
+        paths, _ = QFileDialog.getOpenFileNames(
+            self,
+            t("home.browse_files"),
+            str(Path.home()),
+            t("home.browse_filter"),
+        )
+        if paths:
+            self._import_dropped([Path(p) for p in paths])
 
     def _start_mod_import(self, source: Path) -> None:
         """Analyse puis prévisualisation ; installe après confirmation."""
@@ -2038,6 +2208,75 @@ class MainWindow(QMainWindow):
             self._show_favorites_page()
 
     # ------------------------------------------------------------------ #
+    # Validation (v1.3.4) — la configuration fonctionne malgré les
+    # dépendances signalées (faux positif), sans modifier le scanner global.
+    # ------------------------------------------------------------------ #
+    def _is_config_validated(self, item) -> bool:
+        """Provider des vues : cette configuration a-t-elle été validée par
+        l'utilisateur ? Identité stable = chemin de la configuration (la
+        même convention que les favoris) — jamais le nom affiché seul."""
+        return self.validations.is_validated(str(item.path))
+
+    def _validate_current(self) -> None:
+        """« ✓ Valider » : demande confirmation réelle puis mémorise la
+        validation localement. Le scanner continue de détecter ; seule cette
+        configuration cesse d'afficher les dépendances signalées comme
+        bloquantes. Jamais de modification des fichiers originaux."""
+        item = self._current_item
+        if item is None:
+            return
+        box = QMessageBox(self)
+        box.setWindowTitle(t("validation.title"))
+        box.setIcon(QMessageBox.Question)
+        box.setText(t("validation.question", name=item.name))
+        yes_btn = box.addButton(
+            t("validation.yes"), QMessageBox.ButtonRole.AcceptRole
+        )
+        box.addButton(t("validation.no"), QMessageBox.ButtonRole.RejectRole)
+        box.exec()
+        if box.clickedButton() is not yes_btn:
+            return
+        key = str(item.path)
+        rel_path = ""
+        if self.settings.library_dir is not None:
+            try:
+                rel_path = item.path.relative_to(
+                    Path(self.settings.library_dir)
+                ).as_posix()
+            except ValueError:
+                pass
+        self.validations.set_validated(key, name=item.name, rel_path=rel_path)
+        logger.info("Configuration validée par l'utilisateur : %s", key)
+        self._config.set_validated(True)
+        self._toast.show_message(
+            t("toast.validated"), KIND_SUCCESS, duration_ms=2500
+        )
+        self._refresh_current_grid_status(key)
+
+    def _clear_validation_current(self) -> None:
+        """« Réinitialiser » : retire la validation locale (les dépendances
+        signalées redeviennent bloquantes pour cette configuration)."""
+        item = self._current_item
+        if item is None:
+            return
+        key = str(item.path)
+        if not self.validations.clear_validated(key):
+            return
+        logger.info("Validation réinitialisée : %s", key)
+        self._config.set_validated(False)
+        self._toast.show_message(
+            t("toast.validation_reset"), KIND_WARNING, duration_ms=2500
+        )
+        self._refresh_current_grid_status(key)
+
+    def _refresh_current_grid_status(self, key: str) -> None:
+        """Re-rendre la page courante pour que la puce de statut reflète la
+        validation (une configuration validée n'est plus « Incomplète »)."""
+        current = self._history.current()
+        if current is not None:
+            self._render(current)
+
+    # ------------------------------------------------------------------ #
     # Verification + repair (v1.3.0)
     # ------------------------------------------------------------------ #
     def _verify_current(self) -> None:
@@ -2133,60 +2372,40 @@ class MainWindow(QMainWindow):
 
     def _show_favorites_page(self) -> None:
         """Render the Favorites page: a **virtual folder** gathering every
-        favourite configuration. The files stay in their original category
-        — this is a pure shortcut view, nothing is moved."""
+        favourite item — configurations AND folders (categories, weapons,
+        v1.3.4). The files stay in their original category: this is a pure
+        shortcut view, nothing is moved."""
         favorite_keys = set(self.settings.favorites)
-        configs = [
-            item
-            for item in walk_configs(self.root_node)
-            if str(item.path) in favorite_keys
-        ] if self.root_node is not None else []
-        self._favorites_view.set_favorites(configs, self.root_node)
+        nodes: list[Node] = []
+        configs: list[ConfigItem] = []
+        if self.root_node is not None:
+            nodes = [
+                node
+                for node in _walk_nodes(self.root_node)
+                if str(node.path) in favorite_keys
+            ]
+            configs = [
+                item
+                for item in walk_configs(self.root_node)
+                if str(item.path) in favorite_keys
+            ]
+        self._favorites_view.set_favorites(configs, nodes, self.root_node)
 
     def _create_profile(self) -> None:
-        """« Créer un profil » : captures l'état actuel (configs actives
-        Fleasion pré-cochées), l'utilisateur garde le contrôle final."""
-        if self.settings.library_dir is None:
-            self._toast.show_message(t("toast.no_library"), KIND_WARNING)
-            return
-        configs = self._all_configs()
-        active_keys = self._active_config_keys()
-        dialog = ProfileDialog(
-            self.settings.library_dir,
-            configs,
-            active_keys=active_keys,
-            profile=None,
-            parent=self,
-        )
-        if dialog.exec() != QDialog.Accepted:
-            return
-        try:
-            profile = self.profiles.create(
-                name=dialog.result_profile().name,
-                description=dialog.result_profile().description,
-                entries=dialog.result_profile().entries,
-            )
-        except ProfileError as exc:
-            self._toast.show_message(f"✘ {exc}", KIND_ERROR, duration_ms=4000)
-            return
-        self._toast.show_message(
-            t("toast.profile_created", name=profile.name), KIND_SUCCESS
-        )
-        self._show_profiles_page()
+        """« Créer un profil » (v1.3.4) : capture l'état ACTUEL en un clic.
 
-    def _save_current_as_profile(self) -> None:
-        """« Enregistrer comme profil » (v1.3.1) : capture la configuration
-        ACTUELLE (configs actives dans Fleasion) en un clic — aucun
-        parcours manuel des catégories, aucune sélection skin par skin."""
-        if self.settings.library_dir is None or self.root_node is None:
-            self._toast.show_message(t("toast.no_library"), KIND_WARNING)
+        L'utilisateur configure normalement Fleasion, puis clique « Créer un
+        profil » : l'application scanne le dossier actif de Fleasion (une
+        seule fois), récupère automatiquement toutes les configurations qui
+        y sont présentes et affiche un récapitulatif en lecture seule —
+        aucune sélection manuelle, il ne reste qu'à nommer le profil.
+        """
+        captured, error = self._capture_fleasion_configs()
+        if error:
+            self._toast.show_message(error, KIND_ERROR, duration_ms=4500)
             return
-        captured = [
-            item
-            for item in walk_configs(self.root_node)
-            if str(item.path) in self._active_config_keys()
-        ]
         if not captured:
+            # Jamais de profil vide silencieusement : message clair.
             self._toast.show_message(
                 t("toast.no_active_configs"), KIND_WARNING, duration_ms=4000
             )
@@ -2195,6 +2414,7 @@ class MainWindow(QMainWindow):
             self.settings.library_dir,
             captured,
             capture=captured,
+            save_text=t("profiles.create"),
             parent=self,
         )
         if dialog.exec() != QDialog.Accepted:
@@ -2214,63 +2434,23 @@ class MainWindow(QMainWindow):
         )
         self._show_profiles_page()
 
-    def _import_into_profile(self) -> None:
-        """« Importer dans un profil » (v1.3.1) : importer une
-        configuration (fichier / dossier / ZIP) dans la bibliothèque, puis
-        créer un profil contenant cette configuration."""
-        if self.settings.library_dir is None:
-            self._toast.show_message(t("toast.no_library"), KIND_WARNING)
+    def _save_current_as_profile(self) -> None:
+        """« Enregistrer comme profil » : même capture instantanée que
+        « Créer un profil » — l'état présent dans le dossier actif de
+        Fleasion est détecté automatiquement, aucune sélection manuelle."""
+        captured, error = self._capture_fleasion_configs()
+        if error:
+            self._toast.show_message(error, KIND_ERROR, duration_ms=4500)
             return
-        path = QFileDialog.getOpenFileName(
-            self,
-            t("profiles.import_into_dialog"),
-            str(Path.home()),
-            t("profiles.import_into_filter"),
-        )[0]
-        if not path:
-            return
-        from app.mod_import import (
-            ModImportError,
-            analyze_source,
-            cleanup_staging,
-            install_mod,
-        )
-
-        try:
-            analysis = analyze_source(Path(path))
-        except ModImportError as exc:
-            self._toast.show_message(f"✘ {exc}", KIND_ERROR, duration_ms=4500)
-            return
-        try:
-            dialog = ImportDialog(
-                analysis,
-                self.settings.library_dir,
-                parent=self,
-            )
-            if dialog.exec() != QDialog.Accepted:
-                return
-            plan = dialog.build_plan()
-            destination = install_mod(plan, self.backup_manager)
-        except ModImportError as exc:
-            self._toast.show_message(f"✘ {exc}", KIND_ERROR, duration_ms=4500)
-            return
-        finally:
-            cleanup_staging(analysis)
-        self.refresh_library(show_error=False)
-
-        item = self._config_item_at(destination)
-        if item is None:
+        if not captured:
             self._toast.show_message(
-                t("toast.mod_installed", name=plan.name, destination=destination),
-                KIND_SUCCESS,
-                duration_ms=4000,
+                t("toast.no_active_configs"), KIND_WARNING, duration_ms=4000
             )
             return
-        # Créer le profil contenant cette configuration.
         dialog = ProfileDialog(
             self.settings.library_dir,
-            [item],
-            capture=[item],
+            captured,
+            capture=captured,
             parent=self,
         )
         if dialog.exec() != QDialog.Accepted:
@@ -2416,8 +2596,9 @@ class MainWindow(QMainWindow):
         return box.clickedButton() is continue_btn
 
     def _export_profile(self, profile: Profile) -> None:
-        """« Exporter » : écrit un ``.rcmprofile`` (références logiques
-        uniquement — jamais de chemins absolus ni de données personnelles)."""
+        """« Exporter » : écrit un ``.zip`` partageable contenant le
+        manifeste ``profile.json`` (références logiques uniquement — jamais
+        de chemins absolus ni de données personnelles)."""
         path, _ = QFileDialog.getSaveFileName(
             self,
             t("profiles.export_dialog"),
@@ -2436,17 +2617,46 @@ class MainWindow(QMainWindow):
         )
 
     def _import_profile(self) -> None:
-        """« Importer » : lit un ``.rcmprofile`` et l'ajoute aux profils."""
+        """« Importer un profil » : lit un ``.zip`` de profil (ou un ancien
+        ``.rcmprofile``) et l'ajoute aux profils — totalement séparé de
+        l'import de mods. Un conflit de nom est TOUJOURS soumis à l'utilisateur
+        (remplacer / créer une copie / annuler), jamais écrasé en silence."""
         path, _ = QFileDialog.getOpenFileName(
             self,
             t("profiles.import_dialog"),
             str(Path.home()),
-            f"RCM Profile (*{PROFILE_EXTENSION})",
+            t("profiles.import_filter"),
         )
         if not path:
             return
         try:
-            profile = self.profiles.import_profile(Path(path))
+            candidate = self.profiles.read_file(Path(path))
+        except ProfileError as exc:
+            self._toast.show_message(f"✘ {exc}", KIND_ERROR, duration_ms=4500)
+            return
+        conflict = "copy"
+        if self.profiles.exists(candidate.name):
+            box = QMessageBox(self)
+            box.setWindowTitle(t("profiles.conflict_title"))
+            box.setIcon(QMessageBox.Warning)
+            box.setText(t("profiles.conflict_text", name=candidate.name))
+            replace_btn = box.addButton(
+                t("profiles.conflict_replace"),
+                QMessageBox.ButtonRole.DestructiveRole,
+            )
+            copy_btn = box.addButton(
+                t("profiles.conflict_copy"), QMessageBox.ButtonRole.AcceptRole
+            )
+            box.addButton(t("confirm.cancel"), QMessageBox.ButtonRole.RejectRole)
+            box.exec()
+            if box.clickedButton() is replace_btn:
+                conflict = "replace"
+            elif box.clickedButton() is copy_btn:
+                conflict = "copy"
+            else:
+                return  # annulé : rien n'est modifié
+        try:
+            profile = self.profiles.import_profile(Path(path), conflict=conflict)
         except ProfileError as exc:
             self._toast.show_message(f"✘ {exc}", KIND_ERROR, duration_ms=4500)
             return
@@ -2464,26 +2674,40 @@ class MainWindow(QMainWindow):
             return []
         return walk_configs(self.root_node)
 
-    def _active_config_keys(self) -> set[str]:
-        """Keys of the configurations currently active in Fleasion (the
-        profile's default capture).
+    def _capture_fleasion_configs(self) -> tuple[list[ConfigItem], str | None]:
+        """Capturer l'état actuel : scanne le dossier actif de Fleasion une
+        seule fois et le ramène aux configurations de la bibliothèque
+        (références logiques — jamais de chemins personnels absolus).
 
-        Uses a single ``detect()`` snapshot instead of one ``status()``
-        call per configuration — ``status()`` re-detects (reads
-        settings.json, walks folders) every time, which froze profile
-        creation on large libraries (v1.3.1)."""
-        if self.root_node is None:
-            return set()
+        Retourne ``(configs, error)`` — ``error`` est un message clair quand
+        le dossier Fleasion est inaccessible ou absent ; ``configs`` est
+        vide (avec ``error``) si rien n'a pu être capturé.
+        """
+        if self.root_node is None or self.settings.library_dir is None:
+            return [], t("toast.no_library")
+        if not self.settings.fleasion_dir:
+            return [], t("toast.fleasion_not_configured")
+        # Une seule détection (snapshot), jamais un status() par config.
         try:
             info = self.fleasion.detect()
-            enabled = set(info.enabled_configs)
-        except Exception:
-            enabled = set()
-        return {
-            str(item.path)
-            for item in walk_configs(self.root_node)
-            if item.name in enabled
-        }
+        except Exception:  # noqa: BLE001 - défensif : jamais de crash
+            logger.exception("Détection Fleasion impossible")
+            return [], t("toast.fleasion_folder_inaccessible")
+        config_dir = info.config_dir
+        if config_dir is None or not config_dir.is_dir():
+            return [], t("toast.fleasion_folder_inaccessible")
+        try:
+            names = set(self.fleasion.list_configs())
+        except Exception:  # noqa: BLE001 - défensif
+            logger.exception("Liste des configs Fleasion impossible")
+            return [], t("toast.fleasion_folder_inaccessible")
+        if not names:
+            return [], None  # pas d'erreur : juste rien à capturer
+        captured: list[ConfigItem] = []
+        for item in walk_configs(self.root_node):
+            if fleasion_config_name(item) in names:
+                captured.append(item)
+        return captured, None
 
     def _profile_items(self, profile: Profile) -> list[tuple[ProfileEntry, ConfigItem | None]]:
         """Resolve each entry against the current library (logical refs)."""
@@ -2525,6 +2749,122 @@ class MainWindow(QMainWindow):
         if current is not None:
             self._render(current)
         self._toast.show_message(t("toast.theme_applied"), KIND_SUCCESS, duration_ms=2000)
+
+    # ------------------------------------------------------------------ #
+    # Restart (v1.3.5) — « Recharger l'application »
+    # ------------------------------------------------------------------ #
+    def _restart_app(self) -> None:
+        """« Recharger l'application » : un VRAI redémarrage de l'instance
+        (jamais un simple ``refresh()`` de widget).
+
+        1. sauvegarde les paramètres nécessaires (favoris, profils, langue,
+           thème, chemins, préférences — tous relus au démarrage) ;
+        2. lance une nouvelle instance via le vrai interpréteur/exécutable
+           (jamais dépendant du dossier courant, :mod:`app.restart`) ;
+        3. ferme proprement l'instance actuelle et quitte.
+        """
+        self.settings.save()
+        if relaunch() is None:
+            self._toast.show_message(
+                t("toast.restart_failed"), KIND_ERROR, duration_ms=4000
+            )
+            return
+        logger.info("Rechargement de l'application (nouvelle instance lancée)")
+        self.close()
+        app = QApplication.instance()
+        if app is not None:
+            app.quit()
+
+    # ------------------------------------------------------------------ #
+    # Onboarding (v1.3.8) — choix de langue + tutoriel interactif
+    # ------------------------------------------------------------------ #
+    def _maybe_start_onboarding(self) -> None:
+        """Déclencheur du premier lancement :
+
+        1. aucune langue choisie → écran de choix de langue (modal) ; le
+           choix est enregistré immédiatement et appliqué à toute l'app ;
+        2. tutoriel non terminé → tutoriel interactif (dès que l'accueil
+           est visible).
+        """
+        if not onboarding_enabled():
+            return
+        if needs_language_choice(self.settings):
+            dialog = self._language_dialog_factory(self)
+            if dialog.exec() != QDialog.DialogCode.Accepted:
+                # Fermé sans choisir : on garde la langue par défaut, le
+                # tutoriel peut tout de même s'afficher.
+                pass
+            else:
+                code = dialog.selected_code
+                if code and code != self.settings.language:
+                    self._set_language(code)
+                self.settings.language_chosen = True
+                self.settings.save()
+        if needs_tutorial(self.settings):
+            self._tutorial_pending = True
+            self._maybe_start_tutorial()
+
+    def _maybe_start_tutorial(self) -> None:
+        """Démarre le tutoriel quand il est en attente et que l'accueil est
+        la page visible (jamais pendant l'écran de bienvenue)."""
+        if not self._tutorial_pending or self._onboarding_overlay is not None:
+            return
+        if self._stack.currentWidget() is not self._home:
+            return
+        self._start_tutorial()
+
+    def _start_tutorial(self) -> None:
+        """Construit l'overlay avec les 8 étapes (cibles = widgets réels de
+        la barre supérieure et de l'accueil) et le lance."""
+        steps = [
+            {"targets": [self._home._drop_zone],
+             "title": "onboarding.step_add.title", "body": "onboarding.step_add.body"},
+            {"targets": [self._back_btn, self._forward_btn],
+             "title": "onboarding.step_nav.title", "body": "onboarding.step_nav.body"},
+            {"targets": [self._trash_btn],
+             "title": "onboarding.step_trash.title", "body": "onboarding.step_trash.body"},
+            {"targets": [self._profiles_btn],
+             "title": "onboarding.step_profiles.title", "body": "onboarding.step_profiles.body"},
+            {"targets": [self._top_title],
+             "title": "onboarding.step_home.title", "body": "onboarding.step_home.body"},
+            {"targets": [self._favorites_btn],
+             "title": "onboarding.step_favorites.title", "body": "onboarding.step_favorites.body"},
+            {"targets": [self._search, self._search_page_btn],
+             "title": "onboarding.step_search.title", "body": "onboarding.step_search.body"},
+            {"targets": [self._settings_btn],
+             "title": "onboarding.step_settings.title", "body": "onboarding.step_settings.body"},
+        ]
+        overlay = OnboardingOverlay(self, steps)
+        overlay.completed.connect(self._finish_onboarding)
+        self._onboarding_overlay = overlay
+        overlay.start()
+
+    def _finish_onboarding(self) -> None:
+        """« Compris » : le tutoriel est terminé — enregistré dans les
+        préférences existantes, jamais réaffiché, l'application redevient
+        totalement normale."""
+        mark_tutorial_completed(self.settings)
+        if self._onboarding_overlay is not None:
+            self._onboarding_overlay.close()
+            self._onboarding_overlay.deleteLater()
+            self._onboarding_overlay = None
+        self._tutorial_pending = False
+
+    def _review_tutorial(self) -> None:
+        """« Revoir le tutoriel » (Paramètres, v1.3.9) : relance le tutoriel
+        immédiatement, dans la langue actuelle.
+
+        * l'écran de langue n'apparaît jamais (la langue existe déjà) ;
+        * aucune préférence n'est réinitialisée, aucun fichier touché ;
+        * terminer remet simplement ``onboarding_completed = true`` ;
+        * l'utilisateur peut le refaire autant de fois qu'il veut.
+        """
+        if self._onboarding_overlay is not None:
+            return  # déjà en cours
+        # Le tutoriel cible l'accueil (zone de dépôt) : on y navigue d'abord.
+        if self._stack.currentWidget() is not self._home:
+            self.go(STATE_HOME)
+        self._start_tutorial()
 
     # ------------------------------------------------------------------ #
     # Mouse side buttons (précédent / suivant), scoped to this window
@@ -2616,6 +2956,7 @@ class MainWindow(QMainWindow):
         self._forward_btn.setToolTip(t("nav.forward"))
         self._trash_btn.setToolTip(t("trash.title"))
         self._search_page_btn.setToolTip(t("search.page_title"))
+        self._profiles_btn.setText(t("profiles.title"))
         self._profiles_btn.setToolTip(t("profiles.title"))
         self._search.setPlaceholderText(t("search.placeholder"))
         self._add_weapon_btn.setText(t("add_weapon.button"))
@@ -2629,6 +2970,8 @@ class MainWindow(QMainWindow):
         self._trash_view.retranslate()
         self._search_view.retranslate()
         self._profiles_view.retranslate()
+        if self._onboarding_overlay is not None:
+            self._onboarding_overlay.retranslate()
         self._settings.set_language_value(self.settings.language)
         # Re-render the current state: cards, page titles and search are
         # rebuilt with the new language; navigation history is untouched.
@@ -2683,12 +3026,16 @@ class MainWindow(QMainWindow):
 
     # ------------------------------------------------------------------ #
     def resizeEvent(self, event) -> None:  # noqa: N802 (Qt naming)
+        """Reposition the toast and keep the onboarding overlay covering
+        the whole window on every resize (spotlight + bulle suivent)."""
         super().resizeEvent(event)
         if hasattr(self, "_toast") and self._toast.isVisible():
             parent_rect = self.rect()
             x = (parent_rect.width() - self._toast.width()) // 2
             y = parent_rect.height() - self._toast.height() - 36
             self._toast.move(max(x, 16), max(y, 16))
+        if self._onboarding_overlay is not None:
+            self._onboarding_overlay.setGeometry(self.rect())
 
 
 def _count_items(node: Node) -> int:
@@ -2696,3 +3043,11 @@ def _count_items(node: Node) -> int:
     for sub in node.subdirs:
         total += _count_items(sub)
     return total
+
+
+def _walk_nodes(node: Node) -> list[Node]:
+    """Every folder (Node) of the tree — sub-folders included, root excluded."""
+    nodes = list(node.subdirs)
+    for sub in node.subdirs:
+        nodes.extend(_walk_nodes(sub))
+    return nodes

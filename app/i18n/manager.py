@@ -10,9 +10,9 @@ Rules (from the 1.1.0 spec):
 
 * Every language file must contain the **same keys** — a test validates
   that ``fr.json`` and ``en.json`` match exactly.
-* A missing key falls back to the default language (``fr``), then to the
-  key itself as a last resort — a missing translation can never crash the
-  application. A clear warning is logged in development.
+* A missing key falls back to the default language (``en`` since 1.3.13),
+  then to the key itself as a last resort — a missing translation can
+  never crash the application. A clear warning is logged in development.
 * An unknown language code falls back to the default language.
 * Values may contain ``{placeholder}`` markers filled with
   :func:`str.format` through ``t("key", name=...)``.
@@ -33,9 +33,13 @@ import logging
 import sys
 from pathlib import Path
 
-#: Default language — the application was French-only before 1.1.0, so
-#: existing installations keep the current language by default.
-DEFAULT_LANGUAGE = "fr"
+#: Default language — used when the user never chose a language (brand-
+#: new installation). Since 1.3.13 the default is **English**: the
+#: application is internationalised with English as its starting point,
+#: while French and every other language remain freely selectable in the
+#: language screen. A persisted ``language`` key (any code, e.g. ``fr``)
+#: always wins over this default — existing users are never touched.
+DEFAULT_LANGUAGE = "en"
 
 #: Supported language codes -> native display names (no emoji, per spec).
 #: Adding a language = add its code here and create

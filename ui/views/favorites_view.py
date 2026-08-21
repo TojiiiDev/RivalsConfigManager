@@ -13,18 +13,20 @@ from __future__ import annotations
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
-from app.categories import sort_configs
+from app.categories import sort_configs, sort_nodes
 from app.i18n import t
 from app.models import ConfigItem, Node
+from ui.card_specs import config_spec, folder_spec
 from ui.widgets.grid import CardGrid, CardSpec
 
 
 class FavoritesView(QWidget):
     config_clicked = Signal(object)             # ConfigItem
-    edit_image_requested = Signal(object)       # ConfigItem
-    delete_requested = Signal(object)           # ConfigItem
+    folder_clicked = Signal(object)             # Node (v1.3.4: dossiers favoris)
+    edit_image_requested = Signal(object)       # Node or ConfigItem
+    delete_requested = Signal(object)           # Node or ConfigItem
     toggle_activation_requested = Signal(object)  # ConfigItem
-    favorite_toggled = Signal(object)           # ConfigItem
+    favorite_toggled = Signal(object)           # Node or ConfigItem
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -80,14 +82,24 @@ class FavoritesView(QWidget):
         self._status_provider = provider
 
     # ------------------------------------------------------------------ #
-    def set_favorites(self, configs: list[ConfigItem], library_root: Node | None) -> None:
-        """Show the favourite configurations as normal cards (virtual view:
-        the files stay in their original category)."""
-        n = len(configs)
+    def set_favorites(
+        self,
+        configs: list[ConfigItem],
+        nodes: list[Node] | None = None,
+        library_root: Node | None = None,
+    ) -> None:
+        """Show the favourite items as normal cards (virtual view: the files
+        stay in their original category). Folder favourites (categories,
+        weapons — v1.3.4) appear as folder cards that open their page;
+        configuration favourites appear as configuration cards."""
+        nodes = nodes or []
+        total = len(configs) + len(nodes)
         self._subtitle.setText(
-            t("favorites.count_one") if n == 1 else t("favorites.count_many", count=n)
+            t("favorites.count_one") if total == 1 else t("favorites.count_many", count=total)
         )
         specs = []
+        for node in sort_nodes(nodes):
+            specs.append(self._folder_spec(node, library_root))
         for config in sort_configs(configs):
             specs.append(self._config_spec(config, library_root))
         self._grid.set_reorderable(False)
@@ -96,29 +108,27 @@ class FavoritesView(QWidget):
         self._grid.setVisible(bool(specs))
 
     # ------------------------------------------------------------------ #
+    def _folder_spec(self, node: Node, library_root: Node | None) -> CardSpec:
+        """Card of a favourite folder (category / weapon / sub-folder): opens
+        the folder's page on click, carries the same favourite star.
+        Built by the central builder (``is_favorite=True``: every card of
+        this virtual page is a favourite by construction)."""
+        return folder_spec(
+            node,
+            on_click=lambda n=node: self.folder_clicked.emit(n),
+            library_root=library_root,
+            is_favorite=True,
+        )
+
+    # ------------------------------------------------------------------ #
     def _config_spec(self, config: ConfigItem, library_root: Node | None) -> CardSpec:
-        subtitle = t("unit.configuration")
-        if library_root is not None:
-            try:
-                rel = config.path.relative_to(library_root.path)
-                subtitle = str(rel.parent) if str(rel.parent) != "." else ""
-            except ValueError:
-                pass
-        provider = self._activation_provider
-        fav_provider = self._favorites_provider
-        status_provider = self._status_provider
-        key = str(config.path)
-        return CardSpec(
-            title=config.name,
-            subtitle=subtitle,
-            preview=config.preview,
+        """Favourite configuration card — built by the central builder
+        (same star, activation button and status chip as everywhere)."""
+        return config_spec(
+            config,
             on_click=lambda c=config: self.config_clicked.emit(c),
-            edit_target=config,
-            delete_target=config,
-            key=key,
-            activation_target=config if provider is not None else None,
-            activation_state=provider(config) if provider is not None else None,
-            is_favorite=bool(fav_provider(key)) if fav_provider is not None else False,
-            favorite_target=config if fav_provider is not None else None,
-            status=status_provider(config) if status_provider is not None else None,
+            library_root=library_root,
+            activation_provider=self._activation_provider,
+            favorites_provider=self._favorites_provider,
+            status_provider=self._status_provider,
         )
