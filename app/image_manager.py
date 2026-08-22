@@ -70,11 +70,18 @@ class ImageManager:
         return rel.as_posix()
 
     # ------------------------------------------------------------------ #
-    def import_local(self, item: CardTarget, source: Path) -> Path:
+    def import_local(
+        self, item: CardTarget, source: Path, record_source: bool = True
+    ) -> Path:
         """Copy a local image into the cache and write the sidecar.
 
         Returns the cache file path. Raises :class:`ImageError` with a clear
         message on any problem.
+
+        ``record_source`` controls whether the original PC path is kept in
+        the sidecar's ``source`` field. The Editor Mode passes ``False`` so
+        the association never stores a personal path (the preview is the
+        cached copy, keyed by the element's stable id — ``local_path``).
         """
         source = Path(source)
         validate_image_file(source)
@@ -87,10 +94,10 @@ class ImageManager:
                 _friendly_os_error(exc, t("image_error.action_copy"))
             ) from exc
 
-        save_metadata(
-            item,
-            {"type": "local", "source": str(source), "local_path": self._relative(dest)},
-        )
+        metadata: dict = {"type": "local", "local_path": self._relative(dest)}
+        if record_source:
+            metadata["source"] = str(source)
+        save_metadata(item, metadata)
         return dest
 
     # ------------------------------------------------------------------ #

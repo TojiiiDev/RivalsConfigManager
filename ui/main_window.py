@@ -34,7 +34,15 @@ from app.categories import (
     ensure_weapon_folder,
     safe_folder_name,
 )
-from app.config import AppSettings, backups_dir, image_cache_dir, normalize_path, obj_cache_dir, trash_dir
+from app.config import (
+    AppSettings,
+    backups_dir,
+    image_cache_dir,
+    normalize_path,
+    obj_cache_dir,
+    trash_dir,
+)
+from app.editor import EditorManager
 from app.file_manager import FileManager
 from app.fleasion import FleasionManager, config_name as fleasion_config_name
 from app.batch_import import analyze_batch, cleanup_batch
@@ -89,6 +97,7 @@ from ui.widgets.card import (
 )
 from ui.views.browse_view import BrowseView
 from ui.views.clear_configs_dialog import ClearConfigsDialog
+from ui.views.editor_view import EditorView
 from ui.views.config_view import (
     STATE_ACTIVE,
     STATE_COPIED,
@@ -113,6 +122,7 @@ from ui.widgets.toast import KIND_ERROR, KIND_SUCCESS, KIND_WARNING, Toast
 from ui.icons import (
     chevron_left_icon,
     chevron_right_icon,
+    edit_icon,
     gear_icon,
     plus_icon,
     search_icon,
@@ -132,6 +142,7 @@ PAGE_TRASH = "trash"
 PAGE_SEARCH = "search"
 PAGE_PROFILES = "profiles"
 PAGE_FAVORITES = "favorites"
+PAGE_EDITOR = "editor"
 
 STATE_HOME = (PAGE_HOME, None)
 STATE_SETTINGS = (PAGE_SETTINGS, None)
@@ -215,6 +226,9 @@ class MainWindow(QMainWindow):
         self.backup_manager = BackupManager(backups_dir())
         self.file_manager = FileManager(self.backup_manager)
         self.image_manager = ImageManager()
+        #: Editor Mode (admin): integrates previews into the repository
+        #: assets/ + manifest.json, then associates them locally.
+        self.editor_manager = EditorManager()
         self.obj_manager = ObjManager()
         self.trash = Trash()
         self.fleasion = FleasionManager(self.settings.fleasion_dir, self.backup_manager)
@@ -335,6 +349,16 @@ class MainWindow(QMainWindow):
         self._favorites_btn.setFixedWidth(44)
         self._favorites_btn.clicked.connect(lambda: self.go((PAGE_FAVORITES, None)))
 
+        #: Mode Éditeur — accès au gestionnaire de previews locales.
+        #: Accessible à tous les utilisateurs (pas restreint aux admins).
+        self._editor_btn = QPushButton(self)
+        self._editor_btn.setObjectName("IconButton")
+        self._editor_btn.setIcon(edit_icon())
+        self._editor_btn.setIconSize(QSize(20, 20))
+        self._editor_btn.setToolTip(t("editor.title"))
+        self._editor_btn.setFixedWidth(44)
+        self._editor_btn.clicked.connect(lambda: self.go((PAGE_EDITOR, None)))
+
         self._top_title = QLabel(t("nav.home"), self)
         self._top_title.setObjectName("PageTitle")
 
@@ -403,6 +427,7 @@ class MainWindow(QMainWindow):
         top_layout.addWidget(self._search_page_btn)
         top_layout.addWidget(self._add_weapon_btn)
         top_layout.addWidget(self._add_weapon_spacer)
+        top_layout.addWidget(self._editor_btn)
         top_layout.addWidget(self._settings_btn)
         self._top_bar = top_bar
 
@@ -417,6 +442,7 @@ class MainWindow(QMainWindow):
         self._search_view = SearchView(self)
         self._profiles_view = ProfilesView(self)
         self._favorites_view = FavoritesView(self)
+        self._editor_view = EditorView(self)
 
         self._pages = {
             PAGE_WELCOME: self._welcome,
@@ -428,6 +454,7 @@ class MainWindow(QMainWindow):
             PAGE_SEARCH: self._search_view,
             PAGE_PROFILES: self._profiles_view,
             PAGE_FAVORITES: self._favorites_view,
+            PAGE_EDITOR: self._editor_view,
         }
         for page in self._pages.values():
             self._stack.addWidget(page)
@@ -552,6 +579,10 @@ class MainWindow(QMainWindow):
         self._favorites_view.set_favorites_provider(self._is_favorite)
         self._favorites_view.set_status_provider(self._smart_status_for)
 
+        # ---- Editor Mode (admin) --------------------------------------- #
+        self._editor_view.integrate_requested.connect(self._editor_integrate)
+        self._editor_view.remove_requested.connect(self._editor_remove)
+
     # ------------------------------------------------------------------ #
     # Navigation
     # ------------------------------------------------------------------ #
@@ -619,6 +650,9 @@ class MainWindow(QMainWindow):
         elif page_name == PAGE_FAVORITES:
             self._show_favorites_page()
             self._top_title.setText(t("favorites.title"))
+        elif page_name == PAGE_EDITOR:
+            self._editor_view.set_library(self.root_node)
+            self._top_title.setText(t("editor.title"))
         # Boutons de navigation : désactivés quand aucune navigation possible.
         self._back_btn.setEnabled(self._history.can_go_back)
         self._forward_btn.setEnabled(self._history.can_go_forward)
@@ -1534,6 +1568,48 @@ class MainWindow(QMainWindow):
         dialog = ImageDialog(target, self.image_manager, self)
         dialog.exec()
         self._refresh_and_resync()
+
+    # ------------------------------------------------------------------ #
+    # Editor Mode (admin) — integrate a preview as a project resource
+    # ------------------------------------------------------------------ #
+    def _editor_integrate(self, target: Node | ConfigItem, source: str) -> None:
+        """« Intégrer l'image » : copie locale + publication dans les
+        ressources du projet (``assets/`` + ``manifest.json``), puis re-scan
+        pour que la carte s'actualise immédiatement."""
+        if self.root_node is None:
+            return
+        self.editor_manager.library_root = self.root_node
+        result = self.editor_manager.integrate(target, Path(source))
+        if result.preview is not None:
+            self._refresh_and_resync()
+            self._editor_view.set_library(self.root_node)
+            self._editor_view.clear_pending()
+            if result.project_integrated:
+                self._toast.show_message(
+                    t("editor.integrated", name=target.name), KIND_SUCCESS
+                )
+            else:
+                self._toast.show_message(
+                    t("editor.integrated_local", name=target.name), KIND_SUCCESS
+                )
+        else:
+            message = result.error or t("editor.failed_generic")
+            self._editor_view.set_error(message)
+            self._toast.show_message(
+                t("editor.failed", error=message), KIND_ERROR, duration_ms=5000
+            )
+
+    def _editor_remove(self, target: Node | ConfigItem) -> None:
+        """Retirer l'image d'un élément (association locale + ressource publiée)."""
+        if self.root_node is None:
+            return
+        self.editor_manager.library_root = self.root_node
+        self.editor_manager.remove(target)
+        self._refresh_and_resync()
+        self._editor_view.set_library(self.root_node)
+        self._toast.show_message(
+            t("editor.removed", name=target.name), KIND_SUCCESS
+        )
 
     def _refresh_and_resync(self) -> None:
         """Re-scan the library and re-resolve the current state so cards and
@@ -2831,6 +2907,8 @@ class MainWindow(QMainWindow):
              "title": "onboarding.step_favorites.title", "body": "onboarding.step_favorites.body"},
             {"targets": [self._search, self._search_page_btn],
              "title": "onboarding.step_search.title", "body": "onboarding.step_search.body"},
+            {"targets": [self._editor_btn],
+             "title": "onboarding.step_editor.title", "body": "onboarding.step_editor.body"},
             {"targets": [self._settings_btn],
              "title": "onboarding.step_settings.title", "body": "onboarding.step_settings.body"},
         ]
@@ -2961,6 +3039,7 @@ class MainWindow(QMainWindow):
         self._search.setPlaceholderText(t("search.placeholder"))
         self._add_weapon_btn.setText(t("add_weapon.button"))
         self._add_weapon_btn.setToolTip(t("add_weapon.tooltip"))
+        self._editor_btn.setToolTip(t("editor.title"))
         self._settings_btn.setToolTip(t("settings.title"))
         self._welcome.retranslate()
         self._home.retranslate()
@@ -2970,6 +3049,7 @@ class MainWindow(QMainWindow):
         self._trash_view.retranslate()
         self._search_view.retranslate()
         self._profiles_view.retranslate()
+        self._editor_view.retranslate()
         if self._onboarding_overlay is not None:
             self._onboarding_overlay.retranslate()
         self._settings.set_language_value(self.settings.language)

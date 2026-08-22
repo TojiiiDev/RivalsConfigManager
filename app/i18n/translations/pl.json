@@ -160,6 +160,33 @@
         "verify": "VERIFY",
         "verify_tooltip": "Verify the configuration (JSON, dependencies, files, category)"
     },
+    "editor": {
+        "title": "Tryb edytora",
+        "subtitle": "Wybierz element i zintegruj obraz jako zasób projektu.",
+        "search_placeholder": "Wyszukaj element…",
+        "select_hint": "Wybierz element z listy, aby zarządzać jego podglądem.",
+        "item_type_folder": "Folder",
+        "item_type_config": "Konfiguracja",
+        "current_preview": "Aktualny podgląd",
+        "no_preview": "Brak podglądu",
+        "pending_preview": "Podgląd przed integracją",
+        "choose_image": "Dodaj obraz…",
+        "replace_image": "Zastąp podgląd",
+        "integrate": "Zintegruj obraz",
+        "cancel": "Anuluj",
+        "remove": "Usuń obraz",
+        "integrated": "✔ Obraz zintegrowany i powiązany z « {name} ».",
+        "integrated_local": "✔ Obraz powiązany z « {name} » (utworzono kopię lokalną).",
+        "removed": "✔ Obraz usunięty z « {name} ».",
+        "failed": "✘ Integracja nie powiodła się: {error}",
+        "failed_generic": "Nie udało się zintegrować obrazu.",
+        "no_library_root": "Biblioteka nie została jeszcze przeskanowana.",
+        "empty_key": "Nie udało się ustalić tożsamości elementu.",
+        "project_unavailable": "Zasoby projektu niedostępne (zamrożona kompilacja) — obraz pozostaje powiązany lokalnie.",
+        "add_replace_image": "Dodaj / Zastąp podgląd",
+        "no_results": "Brak wyników",
+        "empty_folder": "Pusty folder"
+    },
     "deps": {
         "title": "ZALEŻNOŚCI",
         "none": "Nie wykryto zależności",
@@ -670,6 +697,10 @@
         "step_search": {
             "title": "Szukaj",
             "body": "Szybko wyszukaj konfigurację, broń, skin, charm lub inny element."
+        },
+        "step_editor": {
+            "title": "Tryb Edytora",
+            "body": "Otwórz Tryb Edytora, aby dostosować obrazy podglądu elementów biblioteki. Wybierz dowolną kategorię, broń lub skórkę, aby dodać lub zastąpić jej podgląd."
         },
         "step_settings": {
             "title": "Ustawienia",

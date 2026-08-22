@@ -160,6 +160,33 @@
         "verify": "VERIFY",
         "verify_tooltip": "Verify the configuration (JSON, dependencies, files, category)"
     },
+    "editor": {
+        "title": "Editor Mode",
+        "subtitle": "Select an element, then integrate an image as a project resource.",
+        "search_placeholder": "Search an element…",
+        "select_hint": "Select an element in the list to manage its preview.",
+        "item_type_folder": "Folder",
+        "item_type_config": "Configuration",
+        "current_preview": "Current preview",
+        "no_preview": "No preview",
+        "pending_preview": "Preview before integration",
+        "choose_image": "Add an image…",
+        "replace_image": "Replace the preview",
+        "integrate": "Integrate the image",
+        "cancel": "Cancel",
+        "remove": "Remove the image",
+        "integrated": "✔ Image integrated and associated with « {name} ».",
+        "integrated_local": "✔ Image associated with « {name} » (local copy created).",
+        "removed": "✔ Image removed from « {name} ».",
+        "failed": "✘ Integration failed: {error}",
+        "failed_generic": "Unable to integrate the image.",
+        "no_library_root": "Library not scanned yet.",
+        "empty_key": "Could not determine the element's identity.",
+        "project_unavailable": "Project resources unavailable (frozen build) — the image stays associated locally.",
+        "add_replace_image": "Add/Replace Preview",
+        "no_results": "No results",
+        "empty_folder": "Empty folder"
+    },
     "deps": {
         "title": "DEPENDENCIES",
         "none": "No dependencies detected",
@@ -670,6 +697,10 @@
         "step_search": {
             "title": "Search",
             "body": "Quickly search for a configuration, a weapon, a skin, a charm or anything else."
+        },
+        "step_editor": {
+            "title": "Editor Mode",
+            "body": "Open Editor Mode to customize the preview images of your library items. Select any category, weapon or skin to add or replace its preview."
         },
         "step_settings": {
             "title": "Settings",

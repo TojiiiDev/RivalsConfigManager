@@ -160,6 +160,33 @@
         "verify": "VERIFY",
         "verify_tooltip": "Verify the configuration (JSON, dependencies, files, category)"
     },
+    "editor": {
+        "title": "Editor-Modus",
+        "subtitle": "Wählen Sie ein Element und integrieren Sie ein Bild als Projektressource.",
+        "search_placeholder": "Element suchen…",
+        "select_hint": "Wählen Sie ein Element in der Liste, um seine Vorschau zu verwalten.",
+        "item_type_folder": "Ordner",
+        "item_type_config": "Konfiguration",
+        "current_preview": "Aktuelle Vorschau",
+        "no_preview": "Keine Vorschau",
+        "pending_preview": "Vorschau vor der Integration",
+        "choose_image": "Bild hinzufügen…",
+        "replace_image": "Vorschau ersetzen",
+        "integrate": "Bild integrieren",
+        "cancel": "Abbrechen",
+        "remove": "Bild entfernen",
+        "integrated": "✔ Bild integriert und mit « {name} » verknüpft.",
+        "integrated_local": "✔ Bild mit « {name} » verknüpft (lokale Kopie erstellt).",
+        "removed": "✔ Bild von « {name} » entfernt.",
+        "failed": "✘ Integration fehlgeschlagen: {error}",
+        "failed_generic": "Bild konnte nicht integriert werden.",
+        "no_library_root": "Bibliothek noch nicht gescannt.",
+        "empty_key": "Identität des Elements konnte nicht bestimmt werden.",
+        "project_unavailable": "Projektressourcen nicht verfügbar (eingefrorener Build) — das Bild bleibt lokal verknüpft.",
+        "add_replace_image": "Vorschau hinzufügen / ersetzen",
+        "no_results": "Keine Ergebnisse",
+        "empty_folder": "Leerer Ordner"
+    },
     "deps": {
         "title": "ABHÄNGIGKEITEN",
         "none": "Keine Abhängigkeiten erkannt",
@@ -670,6 +697,10 @@
         "step_search": {
             "title": "Suche",
             "body": "Suche schnell nach einer Konfiguration, einer Waffe, einem Skin, einem Charm oder einem anderen Element."
+        },
+        "step_editor": {
+            "title": "Editor-Modus",
+            "body": "Öffnen Sie den Editor-Modus, um die Vorschaubilder Ihrer Bibliothekselemente anzupassen. Wählen Sie eine Kategorie, Waffe oder Skin aus, um dessen Vorschau hinzuzufügen oder zu ersetzen."
         },
         "step_settings": {
             "title": "Einstellungen",

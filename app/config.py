@@ -35,11 +35,16 @@ def admin_enabled() -> bool:
     """Whether the admin toolset is active (single central gate).
 
     Every admin-only UI element (manual image editor, asset management,
-    publication tools) is gated behind this function. A future login
-    system only needs to replace ``ADMIN_MODE`` with a runtime check —
-    no interface rewrite.
+    publication tools, the Editor Mode) is gated behind this function. A
+    future login system only needs to replace ``ADMIN_MODE`` with a runtime
+    check — no interface rewrite.
+
+    The creator can enable the admin toolset explicitly — without rebuilding
+    — by setting ``RCM_ADMIN_MODE=1`` in the environment. This is a
+    lightweight guard meant to stop a normal user from accidentally editing
+    official resources, not an authentication system.
     """
-    return bool(ADMIN_MODE)
+    return bool(ADMIN_MODE) or os.environ.get("RCM_ADMIN_MODE") == "1"
 
 
 def data_dir() -> Path:

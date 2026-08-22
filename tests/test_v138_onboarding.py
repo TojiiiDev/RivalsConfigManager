@@ -26,7 +26,7 @@ import json
 from pathlib import Path
 
 import pytest
-from PySide6.QtCore import QPoint, Qt
+from PySide6.QtCore import QPoint, QRect, Qt
 from PySide6.QtWidgets import QApplication, QDialog
 
 
@@ -137,7 +137,7 @@ def test_first_launch_language_choice_and_tutorial(qapp, tmp_path, monkeypatch) 
     # Le tutoriel a démarré dans la langue choisie.
     overlay = window._onboarding_overlay
     assert overlay is not None
-    assert overlay.step_count == 8
+    assert overlay.step_count == 9
     assert overlay.bubble._title.text()  # non vide
     window.close()
 
@@ -331,13 +331,13 @@ def _tutorial_window(qapp, tmp_path, monkeypatch):
     return window, window._onboarding_overlay, settings_path
 
 
-def test_tutorial_8_steps_valid_targets_and_translations(qapp, tmp_path, monkeypatch) -> None:
-    """Les 8 étapes existent, chacune a une cible réelle dans la fenêtre et
+def test_tutorial_9_steps_valid_targets_and_translations(qapp, tmp_path, monkeypatch) -> None:
+    """Les 9 étapes existent, chacune a une cible réelle dans la fenêtre et
     des traductions (jamais la clé brute affichée)."""
     from app.i18n import t
 
     window, overlay, _ = _tutorial_window(qapp, tmp_path, monkeypatch)
-    assert overlay.step_count == 8
+    assert overlay.step_count == 9
     for i in range(overlay.step_count):
         rect = overlay.target_rect(i)
         assert not rect.isNull() and not rect.isEmpty(), f"étape {i} : cible invalide"
@@ -353,23 +353,24 @@ def test_tutorial_next_prev_progress_and_finish(qapp, tmp_path, monkeypatch) -> 
     progression est correct ; « Compris » persiste la fin du tutoriel."""
     window, overlay, settings_path = _tutorial_window(qapp, tmp_path, monkeypatch)
 
-    # Étape 1 : « Précédent » désactivé, progression 1 / 8.
-    assert overlay.bubble._progress.text() == "1 / 8"
+    n = overlay.step_count
+    # Étape 1 : « Précédent » désactivé, progression 1 / n.
+    assert overlay.bubble._progress.text() == f"1 / {n}"
     assert not overlay.bubble._prev_btn.isEnabled()
 
     # Avancer jusqu'à la dernière étape.
-    for expected in range(2, 9):
+    for expected in range(2, n + 1):
         overlay.bubble._next_btn.click()
         assert overlay.current_step == expected - 1
-        assert overlay.bubble._progress.text() == f"{expected} / 8"
+        assert overlay.bubble._progress.text() == f"{expected} / {n}"
     # Dernière étape : le bouton devient « Terminer ».
     assert overlay.bubble._next_btn.text() == "Terminer"
 
     # Précédent ramène bien en arrière.
     overlay.bubble._prev_btn.click()
-    assert overlay.bubble._progress.text() == "7 / 8"
+    assert overlay.bubble._progress.text() == f"{n - 1} / {n}"
     overlay.bubble._next_btn.click()
-    assert overlay.bubble._progress.text() == "8 / 8"
+    assert overlay.bubble._progress.text() == f"{n} / {n}"
 
     # Terminer → écran « Vous êtes prêt ! » puis « Compris ».
     overlay.bubble._next_btn.click()  # étape 8 → écran final
@@ -729,7 +730,7 @@ def test_veil_rendering_app_visible_and_target_clear(qapp, tmp_path, monkeypatch
     jamais noire opaque (on la devine encore derrière), la zone autour de la
     cible est plus claire que les coins, et la cible elle-même est
     parfaitement visible (trou 100 % transparent dans le voile)."""
-    from PySide6.QtCore import QPoint, Qt
+    from PySide6.QtCore import QPoint, QRect, Qt
     from PySide6.QtGui import QImage, QRegion
     from PySide6.QtWidgets import QWidget
 
@@ -927,3 +928,150 @@ def test_reset_returns_virgin_install_with_english_default(
     assert reloaded.language == "en"  # défaut English (1.3.13)
     # Rien d'autre n'a été supprimé.
     assert reloaded.library_dir == lib and reloaded.fleasion_dir == fleasion
+
+
+# ---------------------------------------------------------------------- #
+# 7. Editor Mode tutorial step
+# ---------------------------------------------------------------------- #
+def _editor_step_index(overlay) -> int | None:
+    """Return the index of the Editor Mode step, or None."""
+    for i, step in enumerate(overlay._steps):
+        if "editor" in step.get("title", ""):
+            return i
+    return None
+
+
+def test_editor_step_exists_and_has_translations(qapp, tmp_path, monkeypatch) -> None:
+    """The Editor Mode tutorial step exists and its title/body are
+    translated (never the raw key)."""
+    from app.i18n import t
+
+    window, overlay, _ = _tutorial_window(qapp, tmp_path, monkeypatch)
+    idx = _editor_step_index(overlay)
+    assert idx is not None, "Editor Mode step not found in tutorial"
+    step = overlay._steps[idx]
+    assert step["title"] == "onboarding.step_editor.title"
+    assert step["body"] == "onboarding.step_editor.body"
+    # Translations are non-empty and differ from the key.
+    assert t(step["title"]) != step["title"]
+    assert t(step["body"]) != step["body"]
+    assert len(t(step["body"])) > 20  # body is descriptive, not empty
+    window.close()
+
+
+def test_editor_step_targets_real_editor_button(qapp, tmp_path, monkeypatch) -> None:
+    """The Editor Mode step targets the real editor button widget (not a
+    fixed pixel position). The spotlight geometry matches the button's
+    real geometry."""
+    window, overlay, _ = _tutorial_window(qapp, tmp_path, monkeypatch)
+    idx = _editor_step_index(overlay)
+    assert idx is not None
+    overlay._index = idx
+    overlay._refresh()
+    qapp.processEvents()
+
+    rect = overlay.target_rect(idx)
+    assert not rect.isNull(), "Editor step has no valid target"
+    # The real editor button exists and is visible.
+    btn = window._editor_btn
+    assert btn.isVisible()
+    # The spotlight rect is computed from the button's real geometry
+    # (with padding), not from any hardcoded value.
+    btn_center = btn.mapToGlobal(btn.rect().center())
+    spot_center = rect.center()
+    assert abs(spot_center.x() - btn_center.x()) < 15, (
+        f"Spotlight center {spot_center} not near button center {btn_center}"
+    )
+    assert abs(spot_center.y() - btn_center.y()) < 15
+    # The spotlight encloses the button (with padding).
+    btn_rect_in_overlay = QRect(
+        overlay.mapFromGlobal(btn.mapToGlobal(btn.rect().topLeft())),
+        overlay.mapFromGlobal(btn.mapToGlobal(btn.rect().bottomRight())),
+    )
+    assert rect.contains(btn_rect_in_overlay.center()), (
+        "Spotlight does not contain the editor button center"
+    )
+    window.close()
+
+
+def test_editor_step_spotlight_tracks_button_on_resize(qapp, tmp_path, monkeypatch) -> None:
+    """After resizing the window, the editor step spotlight dynamically
+    repositions to follow the real button geometry."""
+    window, overlay, _ = _tutorial_window(qapp, tmp_path, monkeypatch)
+    idx = _editor_step_index(overlay)
+    assert idx is not None
+
+    for size in [(960, 640), (1600, 900), (1280, 720)]:
+        window.resize(*size)
+        qapp.processEvents()
+        qapp.processEvents()
+        overlay._index = idx
+        overlay._refresh()
+        qapp.processEvents()
+
+        btn = window._editor_btn
+        btn_rect = btn.geometry()
+        spotlight = overlay.target_rect(idx)
+        # The spotlight center must be near the button center.
+        btn_center = btn_rect.center()
+        spot_center = spotlight.center()
+        assert abs(spot_center.x() - btn_center.x()) < 30, (
+            f"Spotlight x={spot_center.x()} != button x={btn_center.x()} at {size}"
+        )
+        assert abs(spot_center.y() - btn_center.y()) < 30, (
+            f"Spotlight y={spot_center.y()} != button y={btn_center.y()} at {size}"
+        )
+    window.close()
+
+
+def test_editor_step_between_search_and_settings(qapp, tmp_path, monkeypatch) -> None:
+    """The Editor Mode step is positioned between Search and Settings in
+    the tutorial sequence."""
+    window, overlay, _ = _tutorial_window(qapp, tmp_path, monkeypatch)
+    editor_idx = _editor_step_index(overlay)
+    assert editor_idx is not None
+    # The step before should be Search, the step after should be Settings.
+    prev_title = overlay._steps[editor_idx - 1]["title"]
+    next_title = overlay._steps[editor_idx + 1]["title"]
+    assert "search" in prev_title, f"Step before editor is not search: {prev_title}"
+    assert "settings" in next_title, f"Step after editor is not settings: {next_title}"
+    window.close()
+
+
+def test_editor_step_in_french(qapp, tmp_path, monkeypatch) -> None:
+    """When the language is French, the editor step shows French text."""
+    from app.i18n import current_language, set_language
+
+    window, overlay, _ = _tutorial_window(qapp, tmp_path, monkeypatch)
+    idx = _editor_step_index(overlay)
+    assert idx is not None
+    prev = current_language()
+    try:
+        set_language("fr")
+        overlay.retranslate()
+        qapp.processEvents()
+        step = overlay._steps[idx]
+        from app.i18n import t
+        title_fr = t(step["title"])
+        body_fr = t(step["body"])
+        assert "Mode Éditeur" in title_fr or "diteur" in title_fr
+        assert len(body_fr) > 20
+    finally:
+        set_language(prev)
+    window.close()
+
+
+def test_all_previous_steps_still_have_valid_targets(qapp, tmp_path, monkeypatch) -> None:
+    """All 9 steps have valid targets and translations — regression check."""
+    from app.i18n import t
+
+    window, overlay, _ = _tutorial_window(qapp, tmp_path, monkeypatch)
+    assert overlay.step_count == 9
+    for i in range(overlay.step_count):
+        rect = overlay.target_rect(i)
+        assert not rect.isNull() and not rect.isEmpty(), f"Step {i}: invalid target"
+        assert rect.left() >= 0 and rect.top() >= 0, f"Step {i}: target outside window"
+        step = overlay._steps[i]
+        assert t(step["title"]) != step["title"], f"Step {i}: untranslated title"
+        assert t(step["body"]) != step["body"], f"Step {i}: untranslated body"
+    window.close()

@@ -195,3 +195,20 @@ def trash_icon() -> QIcon:
     p.drawLine(QPointF(18, 20), QPointF(18, 31))
     p.drawLine(QPointF(26, 20), QPointF(26, 31))
     return _finish(p, pm)
+
+
+def edit_icon() -> QIcon:
+    """Crayon (Mode Éditeur) — icône discrète du bouton admin."""
+    pm, p, pen = _canvas()
+    # Corps du crayon (diagonale).
+    p.drawLine(QPointF(15, 29), QPointF(29, 15))
+    # Pointe (triangle) en bas à gauche.
+    tip = QPainterPath()
+    tip.moveTo(15, 29)
+    tip.lineTo(13, 32)
+    tip.lineTo(16, 31)
+    tip.closeSubpath()
+    p.drawPath(tip)
+    # Gomme (petit trait) en haut à droite.
+    p.drawLine(QPointF(29, 15), QPointF(32, 12))
+    return _finish(p, pm)

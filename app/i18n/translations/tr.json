@@ -160,6 +160,33 @@
         "verify": "VERIFY",
         "verify_tooltip": "Verify the configuration (JSON, dependencies, files, category)"
     },
+    "editor": {
+        "title": "Editör Modu",
+        "subtitle": "Bir öğe seçin ve görüntüyü proje kaynağı olarak entegre edin.",
+        "search_placeholder": "Öğe ara…",
+        "select_hint": "Önizlemesini yönetmek için listeden bir öğe seçin.",
+        "item_type_folder": "Klasör",
+        "item_type_config": "Yapılandırma",
+        "current_preview": "Mevcut önizleme",
+        "no_preview": "Önizleme yok",
+        "pending_preview": "Entegrasyon öncesi önizleme",
+        "choose_image": "Görüntü ekle…",
+        "replace_image": "Önizlemeyi değiştir",
+        "integrate": "Görüntüyü entegre et",
+        "cancel": "İptal",
+        "remove": "Görüntüyü kaldır",
+        "integrated": "✔ Görüntü entegre edildi ve « {name} » ile ilişkilendirildi.",
+        "integrated_local": "✔ Görüntü « {name} » ile ilişkilendirildi (yerel kopya oluşturuldu).",
+        "removed": "✔ Görüntü « {name} » öğesinden kaldırıldı.",
+        "failed": "✘ Entegrasyon başarısız: {error}",
+        "failed_generic": "Görüntü entegre edilemedi.",
+        "no_library_root": "Kütüphane henüz taranmadı.",
+        "empty_key": "Öğenin kimliği belirlenemedi.",
+        "project_unavailable": "Proje kaynakları kullanılamıyor (dondurulmuş derleme) — görüntü yerel olarak ilişkili kalır.",
+        "add_replace_image": "Önizlemeyi Ekle / Değiştir",
+        "no_results": "Sonuç bulunamadı",
+        "empty_folder": "Boş klasör"
+    },
     "deps": {
         "title": "BAĞIMLILIKLAR",
         "none": "Bağımlılık algılanmadı",
@@ -670,6 +697,10 @@
         "step_search": {
             "title": "Arama",
             "body": "Bir yapılandırmayı, silahı, skin'i, charm'ı veya başka bir öğeyi hızlıca arayın."
+        },
+        "step_editor": {
+            "title": "Düzenleyici Modu",
+            "body": "Düzenleyici Modu açarak kütüphane öğelerinizin önizleme görüntülerini özelleştirin. Bir kategori, silah veya skin seçerek önizlemesini ekleyin veya değiştirin."
         },
         "step_settings": {
             "title": "Ayarlar",

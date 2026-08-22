@@ -160,6 +160,33 @@
         "verify": "VERIFY",
         "verify_tooltip": "Verify the configuration (JSON, dependencies, files, category)"
     },
+    "editor": {
+        "title": "Modo Editor",
+        "subtitle": "Selecione um elemento e integre uma imagem como recurso do projeto.",
+        "search_placeholder": "Pesquisar um elemento…",
+        "select_hint": "Selecione um elemento na lista para gerir a sua pré-visualização.",
+        "item_type_folder": "Pasta",
+        "item_type_config": "Configuração",
+        "current_preview": "Pré-visualização atual",
+        "no_preview": "Sem pré-visualização",
+        "pending_preview": "Pré-visualização antes da integração",
+        "choose_image": "Adicionar uma imagem…",
+        "replace_image": "Substituir a pré-visualização",
+        "integrate": "Integrar a imagem",
+        "cancel": "Cancelar",
+        "remove": "Remover a imagem",
+        "integrated": "✔ Imagem integrada e associada a « {name} ».",
+        "integrated_local": "✔ Imagem associada a « {name} » (cópia local criada).",
+        "removed": "✔ Imagem removida de « {name} ».",
+        "failed": "✘ Falha na integração: {error}",
+        "failed_generic": "Não foi possível integrar a imagem.",
+        "no_library_root": "Biblioteca ainda não digitalizada.",
+        "empty_key": "Não foi possível determinar a identidade do elemento.",
+        "project_unavailable": "Recursos do projeto indisponíveis (build congelado) — a imagem permanece associada localmente.",
+        "add_replace_image": "Adicionar / Substituir pré-visualização",
+        "no_results": "Sem resultados",
+        "empty_folder": "Pasta vazia"
+    },
     "deps": {
         "title": "DEPENDÊNCIAS",
         "none": "Nenhuma dependência detetada",
@@ -670,6 +697,10 @@
         "step_search": {
             "title": "Pesquisa",
             "body": "Pesquise rapidamente uma configuração, uma arma, uma skin, um charm ou qualquer outro elemento."
+        },
+        "step_editor": {
+            "title": "Modo Editor",
+            "body": "Abra o Modo Editor para personalizar as imagens de pré-visualização dos itens da sua biblioteca. Selecione qualquer categoria, arma ou skin para adicionar ou substituir a sua pré-visualização."
         },
         "step_settings": {
             "title": "Configurações",

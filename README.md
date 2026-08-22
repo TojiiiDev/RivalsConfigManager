@@ -184,6 +184,33 @@ complet**. Priorité d'affichage : image personnalisée → preview automatique 
 placeholder. Une image de catégorie ne remplace jamais les images de ses
 enfants.
 
+### Mode Éditeur (créateur)
+
+Le **Mode Éditeur** est l'outil du créateur pour gérer rapidement les
+previews de la bibliothèque. Il est accessible via un bouton discret de la
+barre supérieure, **uniquement** quand le mode admin est actif (voir
+`RCM_ADMIN_MODE` dans `.env.example`).
+
+Workflow : **Sélectionner → Aperçu → Intégrer → Carte mise à jour**.
+
+1. Sélectionnez un élément (dossier, arme, skin, charm, …) dans la liste.
+2. Choisissez une image depuis le PC : un **aperçu avant validation**
+   s'affiche (`Annuler` ne modifie rien).
+3. **Intégrer l'image** :
+   - l'image est copiée dans le cache local de l'application et associée à
+     l'élément via un sidecar (le fichier du PC n'est plus nécessaire) ;
+   - elle est aussi copiée dans `assets/` et enregistrée dans `manifest.json`
+     sous la **clé stable** de l'élément (la chaîne de slugs de son chemin
+     relatif à la racine de la bibliothèque — jamais un chemin absolu) ;
+   - la carte s'actualise immédiatement.
+
+L'image intégrée devient une **ressource du projet source** : après
+`git add assets/ manifest.json && git commit && git push`, chaque utilisateur
+la récupère à la prochaine synchronisation, sans reconstruire le `.exe`
+(comme tout autre asset partagé). Un remplacement nettoie proprement
+l'ancien fichier (aucun `AK_1.png`, `AK_2.png`, …). Le Mode Éditeur ne
+modifie jamais les vrais fichiers de configuration (`.json` / `.obj`).
+
 ### Modèles 3D (OBJ)
 
 Une configuration peut être associée à un modèle `.obj` :

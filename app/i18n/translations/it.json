@@ -160,6 +160,33 @@
         "verify": "VERIFY",
         "verify_tooltip": "Verify the configuration (JSON, dependencies, files, category)"
     },
+    "editor": {
+        "title": "Modalità editor",
+        "subtitle": "Seleziona un elemento e integra un'immagine come risorsa del progetto.",
+        "search_placeholder": "Cerca un elemento…",
+        "select_hint": "Seleziona un elemento dall'elenco per gestirne l'anteprima.",
+        "item_type_folder": "Cartella",
+        "item_type_config": "Configurazione",
+        "current_preview": "Anteprima attuale",
+        "no_preview": "Nessuna anteprima",
+        "pending_preview": "Anteprima prima dell'integrazione",
+        "choose_image": "Aggiungi un'immagine…",
+        "replace_image": "Sostituisci l'anteprima",
+        "integrate": "Integra l'immagine",
+        "cancel": "Annulla",
+        "remove": "Rimuovi l'immagine",
+        "integrated": "✔ Immagine integrata e associata a « {name} ».",
+        "integrated_local": "✔ Immagine associata a « {name} » (copia locale creata).",
+        "removed": "✔ Immagine rimossa da « {name} ».",
+        "failed": "✘ Integrazione non riuscita: {error}",
+        "failed_generic": "Impossibile integrare l'immagine.",
+        "no_library_root": "Libreria non ancora scansionata.",
+        "empty_key": "Impossibile determinare l'identità dell'elemento.",
+        "project_unavailable": "Risorse del progetto non disponibili (build congelato) — l'immagine resta associata localmente.",
+        "add_replace_image": "Aggiungi / Sostituisci anteprima",
+        "no_results": "Nessun risultato",
+        "empty_folder": "Cartella vuota"
+    },
     "deps": {
         "title": "DIPENDENZE",
         "none": "Nessuna dipendenza rilevata",
@@ -670,6 +697,10 @@
         "step_search": {
             "title": "Ricerca",
             "body": "Cerca rapidamente una configurazione, un'arma, una skin, un charm o qualsiasi altro elemento."
+        },
+        "step_editor": {
+            "title": "Modalità Editor",
+            "body": "Apri la Modalità Editor per personalizzare le immagini di anteprima degli elementi della libreria. Seleziona qualsiasi categoria, arma o skin per aggiungere o sostituire l'anteprima."
         },
         "step_settings": {
             "title": "Impostazioni",

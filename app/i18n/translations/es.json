@@ -160,6 +160,33 @@
         "verify": "VERIFY",
         "verify_tooltip": "Verify the configuration (JSON, dependencies, files, category)"
     },
+    "editor": {
+        "title": "Modo Editor",
+        "subtitle": "Seleccione un elemento e integre una imagen como recurso del proyecto.",
+        "search_placeholder": "Buscar un elemento…",
+        "select_hint": "Seleccione un elemento de la lista para gestionar su vista previa.",
+        "item_type_folder": "Carpeta",
+        "item_type_config": "Configuración",
+        "current_preview": "Vista previa actual",
+        "no_preview": "Sin vista previa",
+        "pending_preview": "Vista previa antes de la integración",
+        "choose_image": "Añadir una imagen…",
+        "replace_image": "Reemplazar la vista previa",
+        "integrate": "Integrar la imagen",
+        "cancel": "Cancelar",
+        "remove": "Quitar la imagen",
+        "integrated": "✔ Imagen integrada y asociada a « {name} ».",
+        "integrated_local": "✔ Imagen asociada a « {name} » (copia local creada).",
+        "removed": "✔ Imagen eliminada de « {name} ».",
+        "failed": "✘ No se pudo integrar: {error}",
+        "failed_generic": "No se pudo integrar la imagen.",
+        "no_library_root": "La biblioteca aún no se ha escaneado.",
+        "empty_key": "No se pudo determinar la identidad del elemento.",
+        "project_unavailable": "Recursos del proyecto no disponibles (compilación congelada): la imagen queda asociada localmente.",
+        "add_replace_image": "Añadir / Reemplazar la vista previa",
+        "no_results": "Sin resultados",
+        "empty_folder": "Carpeta vacía"
+    },
     "deps": {
         "title": "DEPENDENCIAS",
         "none": "No se detectaron dependencias",
@@ -670,6 +697,10 @@
         "step_search": {
             "title": "Búsqueda",
             "body": "Busca rápidamente una configuración, un arma, un skin, un charm o cualquier otro elemento."
+        },
+        "step_editor": {
+            "title": "Modo Editor",
+            "body": "Abra el Modo Editor para personalizar las imágenes de vista previa de los elementos de su biblioteca. Seleccione cualquier categoría, arma o skin para agregar o reemplazar su vista previa."
         },
         "step_settings": {
             "title": "Ajustes",

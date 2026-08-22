@@ -160,6 +160,33 @@
         "verify": "VÉRIFIER",
         "verify_tooltip": "Vérifier la configuration (JSON, dépendances, fichiers, catégorie)"
     },
+    "editor": {
+        "title": "Mode Éditeur",
+        "subtitle": "Sélectionnez un élément puis intégrez une image comme ressource du projet.",
+        "search_placeholder": "Rechercher un élément…",
+        "select_hint": "Sélectionnez un élément dans la liste pour gérer sa preview.",
+        "item_type_folder": "Dossier",
+        "item_type_config": "Configuration",
+        "current_preview": "Preview actuelle",
+        "no_preview": "Aucune preview",
+        "pending_preview": "Aperçu avant intégration",
+        "choose_image": "Ajouter une image…",
+        "replace_image": "Modifier la preview",
+        "integrate": "Intégrer l'image",
+        "cancel": "Annuler",
+        "remove": "Retirer l'image",
+        "integrated": "✔ Image intégrée et associée à « {name} ».",
+        "integrated_local": "✔ Image associée à « {name} » (copie locale créée).",
+        "removed": "✔ Image retirée de « {name} ».",
+        "failed": "✘ Intégration impossible : {error}",
+        "failed_generic": "Impossible d'intégrer l'image.",
+        "no_library_root": "Bibliothèque pas encore scannée.",
+        "empty_key": "Impossible de déterminer l'identité de l'élément.",
+        "project_unavailable": "Ressources du projet indisponibles (build figé) — l'image reste associée localement.",
+        "add_replace_image": "Ajouter / Remplacer la preview",
+        "no_results": "Aucun résultat",
+        "empty_folder": "Dossier vide"
+    },
     "deps": {
         "title": "DÉPENDANCES",
         "none": "Aucune dépendance détectée",
@@ -670,6 +697,10 @@
         "step_search": {
             "title": "Recherche",
             "body": "Recherchez rapidement une configuration, une arme, un skin, un charm ou tout autre élément."
+        },
+        "step_editor": {
+            "title": "Mode Éditeur",
+            "body": "Ouvrez le Mode Éditeur pour personnaliser les images de preview de votre bibliothèque. Sélectionnez n'importe quelle catégorie, arme ou skin pour ajouter ou remplacer sa preview."
         },
         "step_settings": {
             "title": "Paramètres",

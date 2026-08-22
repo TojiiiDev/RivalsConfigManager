@@ -2,4 +2,4 @@
 
 #: Single source of truth for the application version (used by the window
 #: title and by the PyInstaller Windows version resource at build time).
-__version__ = "1.3.13"
+__version__ = "1.4.0"

@@ -160,6 +160,33 @@
         "verify": "VERIFY",
         "verify_tooltip": "Verify the configuration (JSON, dependencies, files, category)"
     },
+    "editor": {
+        "title": "Bewerkingsmodus",
+        "subtitle": "Selecteer een element en integreer een afbeelding als projectbron.",
+        "search_placeholder": "Zoek een element…",
+        "select_hint": "Selecteer een element in de lijst om de voorbeeldweergave te beheren.",
+        "item_type_folder": "Map",
+        "item_type_config": "Configuratie",
+        "current_preview": "Huidige voorbeeldweergave",
+        "no_preview": "Geen voorbeeldweergave",
+        "pending_preview": "Voorbeeldweergave vóór integratie",
+        "choose_image": "Afbeelding toevoegen…",
+        "replace_image": "Voorbeeldweergave vervangen",
+        "integrate": "Afbeelding integreren",
+        "cancel": "Annuleren",
+        "remove": "Afbeelding verwijderen",
+        "integrated": "✔ Afbeelding geïntegreerd en gekoppeld aan « {name} ».",
+        "integrated_local": "✔ Afbeelding gekoppeld aan « {name} » (lokale kopie gemaakt).",
+        "removed": "✔ Afbeelding verwijderd van « {name} ».",
+        "failed": "✘ Integratie mislukt: {error}",
+        "failed_generic": "De afbeelding kon niet worden geïntegreerd.",
+        "no_library_root": "Bibliotheek is nog niet gescand.",
+        "empty_key": "De identiteit van het element kon niet worden bepaald.",
+        "project_unavailable": "Projectbronnen niet beschikbaar (bevroren build) — de afbeelding blijft lokaal gekoppeld.",
+        "add_replace_image": "Voorbeeldweergave toevoegen / vervangen",
+        "no_results": "Geen resultaten",
+        "empty_folder": "Lege map"
+    },
     "deps": {
         "title": "AFHANKELIJKHEDEN",
         "none": "Geen afhankelijkheden gedetecteerd",
@@ -670,6 +697,10 @@
         "step_search": {
             "title": "Zoeken",
             "body": "Zoek snel een configuratie, wapen, skin, charm of een ander element."
+        },
+        "step_editor": {
+            "title": "Editor-modus",
+            "body": "Open de editor-modus om de voorbeeldafbeeldingen van uw bibliotheekitems aan te passen. Selecteer een categorie, wapen of skin om de voorbeeld toe te voegen of te vervangen."
         },
         "step_settings": {
             "title": "Instellingen",
