@@ -43,7 +43,7 @@ DEFAULT_TIMEOUT = 15.0
 #: box without any per-user configuration. Overridable via the env var for
 #: mirrors / self-hosting / local dev.
 DEFAULT_ASSET_BASE_URL = (
-    "https://raw.githubusercontent.com/louisdacostagaudin000-ux/RivalsConfigManager/main"
+    "https://raw.githubusercontent.com/TojiiiDev/RivalsConfigManager/main"
 )
 
 

@@ -272,7 +272,7 @@ décrites par un **manifest versionné** (`manifest.json`) et sont téléchargé
   nouveaux/modifiés sont téléchargés, en arrière-plan, sans jamais bloquer
   l'interface.
 - **Remote** : par défaut, les assets sont servis depuis
-  `https://raw.githubusercontent.com/louisdacostagaudin000-ux/RivalsConfigManager/main`
+  `https://raw.githubusercontent.com/TojiiiDev/RivalsConfigManager/main`
   (URL définie dans `app/assets/__init__.py`). Elle peut être surchargée (ou
   désactivée) via la variable d'environnement `RCM_ASSET_BASE_URL` (voir
   `.env.example`) — par exemple pour un miroir ou du hors-ligne.
