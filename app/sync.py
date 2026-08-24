@@ -228,6 +228,7 @@ class SyncEngine:
     def _expected_names(item: ConfigItem) -> list[str]:
         """The file names this item places in the active folder."""
         names = [p.name for p in item.files]
-        if item.obj is not None and item.obj_name and item.obj_name not in names:
-            names.append(item.obj_name)
+        for obj_path, obj_name in zip(item.objs, item.obj_names):
+            if obj_name and obj_name not in names:
+                names.append(obj_name)
         return names

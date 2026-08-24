@@ -113,14 +113,14 @@ def _make_file_config(json_path: Path) -> ConfigItem:
 
     # A single .obj referenced by the JSON content is also a reliable
     # association (the JSON explicitly names it and the file exists next to
-    # it). With several, no single model is picked — they are all copied.
-    obj_name: str | None = None
+    # it). With several, they are all included.
     if obj is None:
         dep_objs = [d for d in deps if d.suffix.lower() == ".obj"]
-        if len(dep_objs) == 1:
+        if dep_objs:
             obj = dep_objs[0]
-    if obj is not None:
-        obj_name = obj.name
+            for dep_obj in dep_objs[1:]:
+                files.append(dep_obj)
+    obj_name = obj.name if obj else None
 
     return ConfigItem(
         name=json_path.stem,
@@ -145,22 +145,21 @@ def _make_folder_config(folder: Path) -> ConfigItem:
         files = []
     jsons = [p for p in files if p.suffix.lower() == ".json"]
 
-    # A folder config owns its models: they are copied with it. If exactly
-    # one obj is present the association is unambiguous and is exposed;
-    # with several, no single model is picked (they are all copied anyway).
+    # A folder config owns its models: they are copied with it. The first
+    # obj (if any) is the « primary » association; all are copied.
     objs = [p for p in files if p.suffix.lower() == ".obj"]
-    obj = objs[0] if len(objs) == 1 else None
 
-    return ConfigItem(
+    item = ConfigItem(
         name=folder.name,
         path=folder,
         kind=KIND_FOLDER,
         files=files,
         json_files=jsons,
         preview=find_preview(folder),
-        obj=obj,
-        obj_name=obj.name if obj else None,
     )
+    for o in objs:
+        item.add_obj(o, o.name)
+    return item
 
 
 def _json_container_node(folder: Path, jsons: list[Path]) -> Node:

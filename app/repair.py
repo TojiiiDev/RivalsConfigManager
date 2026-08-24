@@ -151,11 +151,12 @@ def _candidate_from_associated(
     item: ConfigItem, name: str, cache: Path
 ) -> Path | None:
     """The cached model when its destination name matches the reference."""
-    if item.obj is None or not item.obj.is_file():
-        return None
-    dest_name = item.obj_name or item.obj.name
-    if dest_name.casefold() == name.casefold():
-        return item.obj
+    for obj_path, obj_name in zip(item.objs, item.obj_names):
+        if not obj_path.is_file():
+            continue
+        dest_name = obj_name or obj_path.name
+        if dest_name.casefold() == name.casefold():
+            return obj_path
     # The cache stores the model under the stable id — check the raw name.
     cached = cache / name
     return cached if cached.is_file() else None

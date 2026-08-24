@@ -61,10 +61,9 @@ def _library(tmp_path: Path) -> Path:
         lib / "rivals skins" / "Primary" / "Assault Rifle" / "ak-47.json",
         {"replacement_rules": []},
     )
-    # « Shotgun » existe aussi dans Primary (dossier vide) : comme dans la
-    # vraie bibliothèque, une arme détectée et présente est pré-sélectionnée
-    # — jamais inventée depuis le nom détecté quand elle n'existe pas.
-    (lib / "rivals skins" / "Primary" / "Shotgun").mkdir(parents=True)
+    # Shotgun est détectée via le registre d'armes connu (même sans le dossier
+    # dans la bibliothèque). Ne pas pré-créer le dossier vide évite une
+    # collision avec MODE_KEEP_BOTH lors de l'installation.
     _write_json(
         lib / "rivals skins" / "Melee" / "Katana" / "kirambit.json",
         {"replacement_rules": []},
@@ -359,7 +358,7 @@ def test_batch_import_end_to_end(qapp, tmp_path, monkeypatch) -> None:
 
     # Destinations respectées exactement.
     assert (lib / "rivals skins" / "Primary" / "Assault Rifle" / "AK47" / "config.json").exists()
-    assert (lib / "rivals skins" / "Primary" / "Shotgun" / "Shotgun" / "config.json").exists()
+    assert (lib / "rivals skins" / "Primary" / "Shotgun" / "config.json").exists()
     assert (lib / "Utility" / "Pad" / "config.json").exists()
     # Aucune catégorie fantôme (pas de dossier « mods », « AK47 » à la
     # racine, ni de dossier de détection ratée).

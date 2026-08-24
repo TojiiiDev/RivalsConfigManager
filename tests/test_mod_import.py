@@ -390,3 +390,74 @@ def test_build_plan_accepts_custom_category_inside_library(tmp_path: Path) -> No
 
     plan = build_plan("Sky Pack", "Texture and skyboxes", None, analysis, library)
     assert plan.destination == library / "Texture and skyboxes" / "Sky Pack"
+
+
+# ---------------------------------------------------------------------- #
+# Regression: destination must never duplicate the weapon folder name
+# ---------------------------------------------------------------------- #
+def test_destination_no_weapon_duplication(tmp_path: Path) -> None:
+    """Choosing Primary -> Assault Rifle must produce
+    Primary/Assault Rifle/<config>, NOT Primary/Assault Rifle/Assault Rifle/<config>.
+    """
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "config.json").write_text("{}", encoding="utf-8")
+    analysis = analyze_source(src)
+    library = tmp_path / "library"
+
+    plan = build_plan("Assault Rifle", "primary", "Assault Rifle", analysis, library)
+    # Must NOT be: library/Primary/Assault Rifle/Assault Rifle
+    assert plan.destination == library / "Primary" / "Assault Rifle"
+
+
+def test_destination_mod_name_differs_from_weapon(tmp_path: Path) -> None:
+    """A mod name that differs from the weapon creates its own folder."""
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "config.json").write_text("{}", encoding="utf-8")
+    analysis = analyze_source(src)
+    library = tmp_path / "library"
+
+    plan = build_plan("Golden Skin", "primary", "Assault Rifle", analysis, library)
+    assert plan.destination == library / "Primary" / "Assault Rifle" / "Golden Skin"
+
+
+def test_destination_weapon_case_insensitive_match(tmp_path: Path) -> None:
+    """Case differences between mod name and weapon are ignored."""
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "config.json").write_text("{}", encoding="utf-8")
+    analysis = analyze_source(src)
+    library = tmp_path / "library"
+
+    plan = build_plan("assault rifle", "primary", "Assault Rifle", analysis, library)
+    assert plan.destination == library / "Primary" / "Assault Rifle"
+
+
+def test_destination_no_weapon_no_duplication(tmp_path: Path) -> None:
+    """Without a weapon, the mod name is used normally."""
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "config.json").write_text("{}", encoding="utf-8")
+    analysis = analyze_source(src)
+    library = tmp_path / "library"
+
+    plan = build_plan("My Skin", "primary", None, analysis, library)
+    assert plan.destination == library / "Primary" / "My Skin"
+
+
+def test_destination_multiple_items_different_weapons(tmp_path: Path) -> None:
+    """Multiple mods for different weapons: no duplication."""
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "config.json").write_text("{}", encoding="utf-8")
+    analysis = analyze_source(src)
+    library = tmp_path / "library"
+
+    plan1 = build_plan("Assault Rifle", "primary", "Assault Rifle", analysis, library)
+    plan2 = build_plan("Gunblade", "melee", "Gunblade", analysis, library)
+    plan3 = build_plan("Silver Skin", "primary", "Assault Rifle", analysis, library)
+
+    assert plan1.destination == library / "Primary" / "Assault Rifle"
+    assert plan2.destination == library / "Melee" / "Gunblade"
+    assert plan3.destination == library / "Primary" / "Assault Rifle" / "Silver Skin"

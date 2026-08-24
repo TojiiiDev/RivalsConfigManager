@@ -112,8 +112,9 @@ class FileManager:
 
         # 2. Source files must exist ---------------------------------------------
         missing = [p for p in item.files if not p.exists()]
-        if item.obj is not None and not item.obj.exists():
-            missing.append(item.obj)
+        for o in item.objs:
+            if not o.exists():
+                missing.append(o)
         if missing:
             for p in missing:
                 result.errors.append(t("file_manager.missing_file", path=p))
@@ -126,11 +127,12 @@ class FileManager:
             return result
 
         # 4. Back up files that would be overwritten -------------------------------
-        # Destinations: the config's files plus the associated obj (which may
+        # Destinations: the config's files plus every associated obj (which may
         # be copied under a different name, e.g. from the app's obj cache).
         dest_names = [p.name for p in item.files]
-        if item.obj is not None and item.obj_name and item.obj_name not in dest_names:
-            dest_names.append(item.obj_name)
+        for obj_path, obj_name in zip(item.objs, item.obj_names):
+            if obj_name and obj_name not in dest_names:
+                dest_names.append(obj_name)
         existing = [dest / name for name in dest_names if (dest / name).exists()]
         if backup_before_overwrite and existing:
             try:
@@ -149,14 +151,15 @@ class FileManager:
             except OSError as exc:
                 result.errors.append(friendly_error(exc, source.name))
 
-        # 6. Copy the associated obj when it is not already copied under its
-        # destination name (manual association stored in the app cache).
-        if item.obj is not None and item.obj_name and item.obj_name not in result.copied:
-            try:
-                shutil.copy2(item.obj, dest / item.obj_name)
-                result.copied.append(item.obj_name)
-            except OSError as exc:
-                result.errors.append(friendly_error(exc, item.obj_name))
+        # 6. Copy every associated obj under its destination name when it is not
+        # already copied (manual associations stored in the app cache).
+        for obj_path, obj_name in zip(item.objs, item.obj_names):
+            if obj_name and obj_name not in result.copied:
+                try:
+                    shutil.copy2(obj_path, dest / obj_name)
+                    result.copied.append(obj_name)
+                except OSError as exc:
+                    result.errors.append(friendly_error(exc, obj_name))
 
         result.ok = not result.errors and bool(result.copied)
         return result
@@ -180,8 +183,9 @@ class FileManager:
         dest = Path(dest_dir)
 
         names = [p.name for p in item.files]
-        if item.obj is not None and item.obj_name and item.obj_name not in names:
-            names.append(item.obj_name)
+        for obj_path, obj_name in zip(item.objs, item.obj_names):
+            if obj_name and obj_name not in names:
+                names.append(obj_name)
         targets = [dest / n for n in names if (dest / n).is_file()]
         if not targets:
             return result

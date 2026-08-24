@@ -50,10 +50,13 @@ def test_import_local_copies_and_writes_metadata(tmp_path: Path, monkeypatch) ->
     assert dest.is_file()
     assert dest.read_text(encoding="utf-8") == "v 0 0 0\nv 1 0 0\nf 1 2"
     meta = load_metadata(item)
-    assert meta["type"] == "local"
-    assert meta["source"] == str(source)
-    assert meta["file_name"] == "model.obj"
-    assert meta["local_path"] == f"obj_cache/{dest.name}"
+    assert meta["version"] == 2
+    objs = meta["objs"]
+    assert len(objs) == 1
+    assert objs[0]["type"] == "local"
+    assert objs[0]["source"] == str(source)
+    assert objs[0]["file_name"] == "model.obj"
+    assert objs[0]["local_path"] == f"obj_cache/{dest.name}"
     # The real configuration files were not touched.
     assert (tmp_path / "lib" / "Rival Skin.json").read_text(encoding="utf-8") == "{}"
     assert (tmp_path / "lib" / "Rival Skin.obj").read_text(encoding="utf-8") == "v 0 0 0"
@@ -93,12 +96,19 @@ def test_import_local_paths_with_spaces(tmp_path: Path) -> None:
 
 
 def test_import_local_replaces_previous(tmp_path: Path) -> None:
+    """Old test: adding a second OBJ used to replace the first. Now the second
+    OBJ is APPENDED (different cache file, different index)."""
     manager = ObjManager(tmp_path / "cache")
     item = _item(tmp_path / "lib")
     first = manager.import_local(item, _write_obj(tmp_path / "a.obj"))
     second = manager.import_local(item, _write_obj(tmp_path / "b.obj", "v 5 5 5"))
-    assert first == second  # same stable id -> same cache file
+    # v2: each OBJ gets its own cache file (index 0, index 1).
+    assert first != second
+    assert first.read_text(encoding="utf-8") == "v 0 0 0\nv 1 0 0\nf 1 2"
     assert second.read_text(encoding="utf-8") == "v 5 5 5"
+    # Both are recorded.
+    from app.obj_metadata import associated_objs
+    assert len(associated_objs(item)) == 2
 
 
 def test_remove_deletes_metadata_and_cache(tmp_path: Path) -> None:

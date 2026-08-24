@@ -45,7 +45,9 @@ class ConfigView(QWidget):
     open_source_clicked = Signal()
     edit_image_clicked = Signal()
     add_obj_clicked = Signal()
-    remove_obj_clicked = Signal()
+    add_multiple_obj_clicked = Signal()
+    remove_selected_obj_clicked = Signal()  # index passed as argument = 0 removes the first
+    remove_all_obj_clicked = Signal()
     verify_clicked = Signal()   # « Vérifier » (v1.3.0)
     repair_clicked = Signal()   # « Réparer » (v1.3.0, only when relevant)
     validate_clicked = Signal()   # « ✓ Valider » (v1.3.4) — l'utilisateur
@@ -164,10 +166,28 @@ class ConfigView(QWidget):
         self._add_obj_btn.setToolTip("")
         self._add_obj_btn.clicked.connect(self.add_obj_clicked)
 
+        self._add_multiple_obj_btn = QPushButton("", self)
+        self._add_multiple_obj_btn.setToolTip("")
+        self._add_multiple_obj_btn.clicked.connect(self.add_multiple_obj_clicked)
+
+        # ---- Liste des OBJ associés (multi-OBJ v2) -------------------- #
+        self._obj_list = QWidget(self)
+        self._obj_list_layout = QVBoxLayout(self._obj_list)
+        self._obj_list_layout.setContentsMargins(0, 0, 0, 0)
+        self._obj_list_layout.setSpacing(3)
+        self._obj_list_layout.addStretch(1)
+
+        self._no_obj_label = QLabel("", self._obj_list)
+        self._no_obj_label.setWordWrap(True)
+        self._no_obj_label.setStyleSheet(
+            "border: none; background: transparent; color: #6b7280; font-size: 9pt;"
+        )
+        self._obj_list_layout.insertWidget(0, self._no_obj_label)
+
         self._remove_obj_btn = QPushButton("", self)
         self._remove_obj_btn.setObjectName("DangerButton")
         self._remove_obj_btn.setToolTip("")
-        self._remove_obj_btn.clicked.connect(self.remove_obj_clicked)
+        self._remove_obj_btn.clicked.connect(self._on_remove_selected_obj)
 
         self._sync_btn = QPushButton("", self)
         self._sync_btn.setObjectName("VerifyButton")
@@ -193,6 +213,7 @@ class ConfigView(QWidget):
         image_row1.setSpacing(10)
         image_row1.addWidget(self._edit_image_btn)
         image_row1.addWidget(self._add_obj_btn)
+        image_row1.addWidget(self._add_multiple_obj_btn)
         image_row1.addWidget(self._remove_obj_btn)
         image_row1.addStretch(1)
 
@@ -223,6 +244,12 @@ class ConfigView(QWidget):
         right_layout.addSpacing(6)
         right_layout.addWidget(self._files_label)
         right_layout.addWidget(files_scroll)
+        # ---- OBJ list (multi-OBJ v2) ---------------------------------- #
+        self._obj_section_label = QLabel("", self)
+        self._obj_section_label.setObjectName("SectionLabel")
+        right_layout.addWidget(self._obj_section_label)
+        right_layout.addWidget(self._obj_list)
+        # ----------------------------------------------------------------- #
         right_layout.addWidget(self._deps_box)
         right_layout.addStretch(1)
         right_layout.addWidget(self._result_box)
@@ -260,11 +287,11 @@ class ConfigView(QWidget):
         self._path.setText(str(item.path))
         self._preview.set_path(item.preview, item.name)
 
-        # Files list (the associated obj is shown too, even when it lives in
-        # the app cache and is copied under its original name).
+        # Files list (every associated obj is shown too).
         names = [f.name for f in item.files]
-        if item.obj is not None and item.obj_name and item.obj_name not in names:
-            names.append(item.obj_name)
+        for obj_path, obj_name in zip(item.objs, item.obj_names):
+            if obj_name and obj_name not in names:
+                names.append(obj_name)
         while self._files_layout.count() > 1:
             child = self._files_layout.takeAt(0)
             if child.widget():
@@ -275,11 +302,53 @@ class ConfigView(QWidget):
             self._files_layout.insertWidget(self._files_layout.count() - 1, lbl)
         self._files_label.setText(t("config.files_included", count=len(names)))
 
-        self._remove_obj_btn.setEnabled(item.obj is not None)
+        # OBJ list (multi-OBJ v2)
+        self._refresh_obj_list()
+
         self._show_dependencies(item)
         self._verification: ConfigVerification | None = None
         self.hide_result()
         self.hide_repair()
+
+    # ------------------------------------------------------------------ #
+    def _current_obj_index(self) -> int:
+        """Index of the currently selected OBJ in the list, or 0."""
+        return 0  # UI keeps it simple: the first OBJ is the default target
+
+    def _refresh_obj_list(self) -> None:
+        """Rebuild the OBJ list from the current item."""
+        # Remove old entries (keep the stretch and the no-obj label).
+        while self._obj_list_layout.count() > 2:
+            child = self._obj_list_layout.takeAt(1)
+            if child.widget():
+                child.widget().deleteLater()
+
+        item = self._item
+        if item is None or not item.objs:
+            self._no_obj_label.setText(t("config.no_obj"))
+            self._no_obj_label.show()
+            self._remove_obj_btn.setEnabled(False)
+            self._obj_section_label.setText(t("config.obj_files"))
+            return
+
+        self._no_obj_label.hide()
+        self._obj_section_label.setText(
+            t("config.obj_files_count", count=len(item.objs))
+        )
+        self._remove_obj_btn.setEnabled(True)
+
+        for i, (obj_path, obj_name) in enumerate(zip(item.objs, item.obj_names)):
+            name = obj_name or obj_path.name
+            lbl = QLabel(f"  ✓  {name}", self._obj_list)
+            lbl.setStyleSheet(
+                "border: none; background: transparent; color: #7ee787; font-size: 9pt;"
+            )
+            lbl.setToolTip(str(obj_path))
+            self._obj_list_layout.insertWidget(self._obj_list_layout.count() - 1, lbl)
+
+    def _on_remove_selected_obj(self) -> None:
+        """Remove the first OBJ (simplest interaction)."""
+        self.remove_selected_obj_clicked.emit()
 
     # ------------------------------------------------------------------ #
     def _show_dependencies(self, item: ConfigItem) -> None:
@@ -414,8 +483,11 @@ class ConfigView(QWidget):
         self._edit_image_btn.setToolTip(t("config.edit_image_tooltip"))
         self._add_obj_btn.setText(t("config.add_obj"))
         self._add_obj_btn.setToolTip(t("config.add_obj_tooltip"))
+        self._add_multiple_obj_btn.setText(t("config.add_multiple_obj"))
+        self._add_multiple_obj_btn.setToolTip(t("config.add_multiple_obj_tooltip"))
         self._remove_obj_btn.setText(t("config.remove_obj"))
         self._remove_obj_btn.setToolTip(t("config.remove_obj_tooltip"))
+        self._no_obj_label.setText(t("config.no_obj"))
         self._sync_btn.setText(t("config.verify"))
         self._sync_btn.setToolTip(t("config.verify_tooltip"))
         self._repair_btn.setText(t("repair.button"))

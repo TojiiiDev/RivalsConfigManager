@@ -108,8 +108,9 @@ def verify_item(item: ConfigItem) -> ConfigVerification:
 
     # -- Files ----------------------------------------------------------- #
     files_missing = [p.name for p in item.files if not p.exists()]
-    if item.obj is not None and not item.obj.exists():
-        files_missing.append(item.obj_name or item.obj.name)
+    for o in item.objs:
+        if not o.exists():
+            files_missing.append(o.name)
     files_ok = not files_missing
 
     # -- Category -------------------------------------------------------- #

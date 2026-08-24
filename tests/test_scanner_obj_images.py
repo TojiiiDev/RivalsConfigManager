@@ -168,7 +168,7 @@ def test_obj_folder_config_single_model(tmp_path: Path) -> None:
 
 
 def test_obj_folder_config_multiple_models_no_single_association(tmp_path: Path) -> None:
-    """Several models in a folder config: all copied, no single pick."""
+    """Several models in a folder config: all copied, first is primary."""
     root = tmp_path / "lib"
     pack = root / "pack"
     write_json(pack / "config.json", {})
@@ -177,7 +177,9 @@ def test_obj_folder_config_multiple_models_no_single_association(tmp_path: Path)
 
     node = scan_library(root).node
     config = next(c for c in node.configs if c.name == "pack")
-    assert config.obj is None  # ambiguous
+    # v2: multi-OBJ — the first is the primary association
+    assert config.obj is not None
+    assert len(config.objs) == 2
     names = {f.name for f in config.files}
     assert "body.obj" in names and "mag.obj" in names
 

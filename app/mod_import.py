@@ -420,7 +420,13 @@ def _destination(
     dest = folder
     if weapon:
         dest = dest / _sanitize_component(weapon)
-    return dest / name
+    clean_name = _sanitize_component(name) or "mod"
+    # When the mod name matches the destination weapon folder (case-
+    # insensitive), install directly into the weapon folder — never create
+    # a duplicate ``Assault Rifle/Assault Rifle/`` level.
+    if weapon and clean_name.casefold() == _sanitize_component(weapon).casefold():
+        return dest
+    return dest / clean_name
 
 
 def _next_free_name(destination: Path) -> Path:

@@ -512,7 +512,8 @@ class MainWindow(QMainWindow):
         self._config.open_source_clicked.connect(self._open_current_source)
         self._config.edit_image_clicked.connect(self._edit_current_image)
         self._config.add_obj_clicked.connect(self._add_current_obj)
-        self._config.remove_obj_clicked.connect(self._remove_current_obj)
+        self._config.add_multiple_obj_clicked.connect(self._add_multiple_obj)
+        self._config.remove_selected_obj_clicked.connect(lambda: self._remove_current_obj_at(0))
         self._config.verify_clicked.connect(self._verify_current)
         self._config.repair_clicked.connect(self._repair_current)
         self._config.validate_clicked.connect(self._validate_current)
@@ -1882,7 +1883,7 @@ class MainWindow(QMainWindow):
         self.refresh_library(show_error=False)
 
     def _add_current_obj(self) -> None:
-        """Pick a local .obj and associate it with the current config."""
+        """Pick a local .obj and APPEND it to the current config (multi-OBJ)."""
         item = self._current_item
         if item is None:
             return
@@ -1904,12 +1905,51 @@ class MainWindow(QMainWindow):
         self._toast.show_message(t("toast.obj_associated"), KIND_SUCCESS)
         self._refresh_and_resync()
 
-    def _remove_current_obj(self) -> None:
+    def _add_multiple_obj(self) -> None:
+        """Pick several local .obj files and APPEND them (multi-OBJ)."""
         item = self._current_item
         if item is None:
             return
-        self.obj_manager.remove(item)
-        self._toast.show_message(t("toast.obj_removed"), KIND_SUCCESS)
+        from PySide6.QtWidgets import QFileDialog
+
+        paths, _ = QFileDialog.getOpenFileNames(
+            self,
+            t("main_window.choose_obj"),
+            str(item.path.parent),
+            t("main_window.obj_filter"),
+        )
+        if not paths:
+            return
+        success = 0
+        for path in paths:
+            try:
+                self.obj_manager.import_local(item, Path(path))
+                success += 1
+            except ObjError as exc:
+                self._toast.show_message(f"✘ {exc}", KIND_ERROR, duration_ms=3000)
+        if success:
+            self._toast.show_message(
+                t("toast.obj_associated_multiple", count=success,
+                  s="" if success == 1 else "s"),
+                KIND_SUCCESS,
+            )
+            self._refresh_and_resync()
+
+    def _remove_current_obj_at(self, index: int = 0) -> None:
+        """Remove one OBJ at the given index. Falls back to remove-all when
+        the item has only one."""
+        item = self._current_item
+        if item is None:
+            return
+        count = self.obj_manager.count(item)
+        if count <= 1:
+            self.obj_manager.remove(item)
+            self._toast.show_message(t("toast.obj_removed"), KIND_SUCCESS)
+        else:
+            if self.obj_manager.remove_one(item, index):
+                self._toast.show_message(t("toast.obj_one_removed"), KIND_SUCCESS)
+            else:
+                self._toast.show_message(t("toast.obj_nothing_to_remove"), KIND_WARNING)
         self._refresh_and_resync()
 
     # ------------------------------------------------------------------ #

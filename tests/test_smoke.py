@@ -1501,7 +1501,7 @@ def test_obj_workflow_in_ui(library: Path, fleasion_dir: Path, tmp_path: Path, m
     # Remove.
     window2.go(("config", fresh2_item))
     qapp.processEvents()
-    window2._remove_current_obj()
+    window2._remove_current_obj_at(0)
     QTest.qWait(300)
     fresh3 = next(c for c in window2.root_node.subdirs if c.name == "Charms").configs
     fresh3_item = next(c for c in fresh3 if c.name == "nemesis charm")
@@ -3341,7 +3341,7 @@ def test_window_resizes_without_overlap(library: Path, fleasion_dir: Path, tmp_p
         # chevauchement ni débordement.
         cv = window._config
         rows = (
-            (cv._edit_image_btn, cv._add_obj_btn, cv._remove_obj_btn),
+            (cv._edit_image_btn, cv._add_obj_btn, cv._add_multiple_obj_btn, cv._remove_obj_btn),
             (cv._sync_btn, cv._open_btn),
         )
         for row in rows:

@@ -3,6 +3,9 @@
 The manager never touches the real configuration files (``.json`` /
 ``.obj``). It only writes the ``.obj.json`` sidecar and the application's
 obj cache.
+
+Supports multiple OBJ files per configuration: adding a new OBJ appends
+it to the list, never replacing the existing ones.
 """
 
 from __future__ import annotations
@@ -14,9 +17,14 @@ from .config import data_dir, obj_cache_dir
 from .i18n import t
 from .models import ConfigItem, Node
 from .obj_metadata import (
+    add_obj_metadata,
     associated_obj,
+    associated_objs,
     delete_metadata,
     is_obj_metadata,
+    load_metadata,
+    remove_obj_metadata_at,
+    replace_obj_metadata_at,
     save_metadata,
     stable_obj_id,
 )
@@ -69,9 +77,18 @@ class ObjManager:
         self.cache_root.mkdir(parents=True, exist_ok=True)
 
     # ------------------------------------------------------------------ #
-    def cache_file_for(self, item: ConfigItem | Node) -> Path:
-        """Stable cache file name for an element's model."""
-        return self.cache_root / f"{stable_obj_id(item)}.obj"
+    def cache_file_for(self, item: ConfigItem | Node, index: int = 0) -> Path:
+        """Stable cache file name for an element's model at the given index.
+
+        Each OBJ gets its own cache file (``<id>_0.obj``, ``<id>_1.obj``...).
+        """
+        return self.cache_root / f"{stable_obj_id(item)}_{index}.obj"
+
+    def _next_index(self, item: ConfigItem | Node) -> int:
+        """First free index for a new OBJ on this element."""
+        meta = load_metadata(item)
+        objs = meta.get("objs") if meta and isinstance(meta.get("objs"), list) else []
+        return len(objs)
 
     def _relative(self, path: Path) -> str:
         """Store a path relative to the app data dir when possible."""
@@ -83,15 +100,19 @@ class ObjManager:
 
     # ------------------------------------------------------------------ #
     def import_local(self, item: ConfigItem | Node, source: Path) -> Path:
-        """Copy a local obj into the cache and write the sidecar.
+        """Copy a local obj into the cache and APPEND it to the sidecar.
 
-        Returns the cache file path. Raises :class:`ObjError` with a clear
-        message on any problem.
+        Adding a new OBJ never replaces the existing ones — each OBJ gets
+        its own cache file. Returns the cache file path.
+
+        Backward-compatible: calling this on an item that had a v1 single
+        OBJ will add a second OBJ without losing the first (auto-migrated).
         """
         source = Path(source)
         validate_obj_file(source)
 
-        dest = self.cache_file_for(item)
+        index = self._next_index(item)
+        dest = self.cache_file_for(item, index)
         try:
             shutil.copy2(source, dest)
         except OSError as exc:
@@ -99,31 +120,55 @@ class ObjManager:
                 _friendly_os_error(exc, t("obj.action_copy"))
             ) from exc
 
-        save_metadata(
-            item,
-            {
-                "type": "local",
-                "source": str(source),
-                "local_path": self._relative(dest),
-                "file_name": source.name,
-            },
-        )
+        add_obj_metadata(item, dest, source)
         return dest
 
     # ------------------------------------------------------------------ #
     def remove(self, item: ConfigItem | Node) -> None:
-        """Remove the obj association.
+        """Remove ALL obj associations for this element.
 
-        Deletes the sidecar and the cached model (only if it belongs to this
-        element). The real ``.json`` / ``.obj`` files are never touched.
+        Deletes the sidecar and every cached model that belongs to this
+        element. The real ``.json`` / ``.obj`` files are never touched.
         """
-        cached = associated_obj(item)
-        if cached is not None and cached.is_relative_to(self.cache_root):
-            try:
-                cached.unlink()
-            except OSError:
-                pass
+        cached_list = associated_objs(item)
+        for cached in cached_list:
+            if cached.is_relative_to(self.cache_root):
+                try:
+                    cached.unlink()
+                except OSError:
+                    pass
         delete_metadata(item)
+
+    # ------------------------------------------------------------------ #
+    def remove_one(self, item: ConfigItem | Node, index: int) -> bool:
+        """Remove a single OBJ at the given index. Other OBJs are kept.
+
+        Returns True when the sidecar was updated.
+        """
+        return remove_obj_metadata_at(item, index)
+
+    def replace_one(self, item: ConfigItem | Node, index: int, source: Path) -> Path:
+        """Replace one OBJ at the given index. Other OBJs are kept."""
+        source = Path(source)
+        validate_obj_file(source)
+        dest = self.cache_file_for(item, index)
+        try:
+            shutil.copy2(source, dest)
+        except OSError as exc:
+            raise ObjError(
+                _friendly_os_error(exc, t("obj.action_copy"))
+            ) from exc
+        replace_obj_metadata_at(item, index, dest, source)
+        return dest
+
+    def count(self, item: ConfigItem | Node) -> int:
+        """Number of OBJs associated with this element."""
+        return len(associated_objs(item))
+
+    # Backward compat delegator (v1) ------------------------------------- #
+    def cache_file_for_legacy(self, item: ConfigItem | Node) -> Path:
+        """Stable cache file name (index 0, backward compat)."""
+        return self.cache_root / f"{stable_obj_id(item)}.obj"
 
     # ------------------------------------------------------------------ #
     @staticmethod
